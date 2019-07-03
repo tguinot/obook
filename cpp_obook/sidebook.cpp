@@ -1,5 +1,7 @@
 #include "sidebook.hpp"
 #include <iostream>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
 #include <algorithm>
 
 number quantity(sidebook_content::iterator loc) {
@@ -34,6 +36,7 @@ void SideBook::setup_segment(std::string path, shm_mode mode){
 }
 
 SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
+    mutex = new named_mutex(open_or_create, path.c_str());
     setup_segment(path, mode);
     data = segment->find_or_construct< sidebook_content > ("unique")();
     default_value = fill_value;
@@ -42,6 +45,7 @@ SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
 }
 
 void SideBook::fill_with(number fillNumber){
+    scoped_lock<named_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
         (*i)[0] = fillNumber;
         (*i)[1] = fillNumber;
@@ -51,6 +55,7 @@ void SideBook::fill_with(number fillNumber){
 number** SideBook::snapshot_to_limit(int limit){
  number** result = new number*[limit];
  int i = 0;
+ scoped_lock<named_mutex> lock(*mutex);
  for (sidebook_ascender it=data->begin(); it!=data->end(); i++){
     if (i >= limit || price(it) == default_value)
       break;
@@ -88,12 +93,14 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {
+    scoped_lock<named_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
     sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
     insert_at_place(data, to_insert, loc);
 }
 
 void SideBook::insert_bid(number new_price, number new_quantity) {
+    scoped_lock<named_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
     sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
     insert_at_place(data, to_insert, loc);

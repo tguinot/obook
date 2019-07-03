@@ -44,6 +44,7 @@ number price(sidebook_content::reverse_iterator loc);
 class SideBook {
 	mapped_region *region;
 	managed_shared_memory *segment;
+    named_mutex *mutex;
     sidebook_content *data;
 	void_allocator *allocator;
     number default_value;
