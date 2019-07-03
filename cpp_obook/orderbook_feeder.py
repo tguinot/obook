@@ -11,12 +11,11 @@ class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter):
 
 shm_name = '/shm' + str(random.random())
 writer = RtOrderbookWriter(shm_name)
-print("Inited SHM on", shm_name)
 cexio_logger = get_logger('Man Trade', 'mantrader.log')
 
 def display_insert(side, quantity, price):
     print("Inserting {}: {}@{} of types {} {} ".format(side, quantity, price, type(quantity), type(price)))
     writer.set_quantity_at(side, *quantity.as_integer_ratio(), *price.as_integer_ratio())
 
-iface = CexioInterface("ETHUSD", "wJ6I0SY7BtbtMtmCFdWYLRGBilw", "6sKWfLRFYTItRzW2QYtwdWIqNM", cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert)
+iface = CexioInterface("ETHUSD", "", "", cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert)
 iface.startup()
