@@ -43,11 +43,11 @@ number price(sidebook_content::reverse_iterator loc);
 
 class SideBook {
 	mapped_region *region;
-	managed_shared_memory *segment;
-    named_mutex *mutex;
+    managed_shared_memory *segment;
     sidebook_content *data;
 	void_allocator *allocator;
     number default_value;
+    shm_mode book_mode;
 
     void fill_with(number);
 
@@ -57,11 +57,14 @@ class SideBook {
 	public:
         SideBook(std::string, shm_mode, number);
 
+
+        named_mutex *mutex;
         number** snapshot_to_limit(int);
         boost::python::list py_snapshot_to_limit(int);
 
         void insert_ask(number, number);
         void insert_bid(number, number);
+        void reset_content();
 
         number get_default_value() {
           return default_value;

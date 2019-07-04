@@ -1,9 +1,11 @@
 #include "orderbook.hpp"
+#include <boost/interprocess/sync/named_mutex.hpp>
 
 namespace py = boost::python;
 
 py::list OrderbookReader::_py_side_up_to_volume_(SideBook *sb, number target_volume) {
   py::list result;
+  scoped_lock<named_mutex> lock(*sb->mutex);
   for (sidebook_ascender it=sb->begin(); it!=sb->end(); ++it){
      if (price(it) == sb->get_default_value())
        break;

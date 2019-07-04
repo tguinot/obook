@@ -51,6 +51,11 @@ void OrderbookReader::display_side (order_side side) {
   }
 }
 
+void OrderbookWriter::reset_content(){
+    bids->reset_content();
+    asks->reset_content();
+}
+
 void OrderbookWriter::set_quantity_at (order_side side, number new_quantity, number new_price) {
   if (side == ASK)
     asks->insert_ask(new_price, new_quantity);

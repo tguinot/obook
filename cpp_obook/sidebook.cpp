@@ -40,8 +40,12 @@ SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
     setup_segment(path, mode);
     data = segment->find_or_construct< sidebook_content > ("unique")();
     default_value = fill_value;
+    book_mode = mode;
+    reset_content();
+}
 
-    if (mode) fill_with(default_value);
+void SideBook::reset_content(){
+    if (book_mode == read_write_shm) fill_with(default_value);
 }
 
 void SideBook::fill_with(number fillNumber){
@@ -63,7 +67,7 @@ number** SideBook::snapshot_to_limit(int limit){
     result[i] = new number[2];
     result[i][0] = price(it);
     result[i][1] = quantity(it);
-    i++;
+    //i++;
   }
   return result;
 }
