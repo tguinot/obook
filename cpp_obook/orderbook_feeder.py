@@ -1,5 +1,6 @@
 from cexio_receiver import CexioInterface
 from trade_logger import get_logger
+from cexio_keys import key, secret
 from build import orderbook_wrapper
 from fractions import Fraction
 from orderbook_helper import RtOrderbookWriter
@@ -17,5 +18,6 @@ def reset_orderbook():
 
 print('SHM path is', shm_name)
 cexio_logger = get_logger('Man Trade', 'mantrader.log')
-iface = CexioInterface("ETHUSD", "xWeOBgXDOZEs0MpxYBzcuZobI", "mJ4xngr5mqQRjZbSu0MUojiKSPg", cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
+iface = CexioInterface("ETHUSD", key, secret, cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
 iface.startup()
+
