@@ -84,21 +84,16 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
     if (loc == data->end())
         return;
     if ((*loc)[0] != to_insert[0] && to_insert[1].numerator() != 0){
-        std::cout << "Inserting new price " << to_insert[1] << " @ " << to_insert[0] << std::endl;
         std::rotate(loc, data->end()-1, data->end());
 
         (*loc)[0] = to_insert[0];
         (*loc)[1] = to_insert[1];
     } else if ((*loc)[0] == to_insert[0] && to_insert[1].numerator() == 0) {
-        std::cout << "Suppressing as zero " << to_insert[1] << " @ " << to_insert[0] << std::endl;
         std::copy(loc+1,data->end(), loc);
         data->back()[0] = default_value;
         data->back()[1] = default_value;
     } else if (to_insert[1].numerator() != 0){
-        std::cout << "Inserting existing price " << to_insert[1] << " @ " << to_insert[0] << std::endl;
         (*loc)[1] = to_insert[1];
-    } else {
-        std::cout << "Ignoring as zero " << to_insert[1] << " @ " << to_insert[0] << std::endl;
     }
 }
 
