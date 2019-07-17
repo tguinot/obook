@@ -9,11 +9,11 @@ import hmac
 import hashlib
 
 class CexioInterface(ExchangeInterface):
-    def __init__(self, currencies, key, secret, g_logger, subscriptions=None, order_manager=None, mode='listenner', no_orders_query=False, on_orderbook_update=None):
+    def __init__(self, currencies, key, secret, g_logger, subscriptions=None, order_manager=None, mode='listenner', no_orders_query=False, on_orderbook_update=None, on_ignite=None):
         self.wss_address = "wss://ws.cex.io/ws/"
         self.exchange = 'cexio'
         self.on_orderbook_update = on_orderbook_update
-        super(CexioInterface, self).__init__(currencies, key, secret, g_logger, subscriptions, order_manager, mode, no_orders_query)
+        super(CexioInterface, self).__init__(currencies, key, secret, g_logger, subscriptions, order_manager, mode, no_orders_query, on_ignite=on_ignite)
 
     def setup_order_functions(self):
         self.response_actions_map = {
@@ -25,7 +25,6 @@ class CexioInterface(ExchangeInterface):
                               "auth": self.update_auth_status,
                               "order-book-subscribe": self.queue_orderbook_update,
                               "order-book-unsubscribe": self.update_subscriptions}
-
 
 
     def queue_orderbook_update(self, msg):
@@ -167,8 +166,6 @@ class CexioInterface(ExchangeInterface):
         return msg['data']
 
     def parse_subscription_msg(self, msg, logger=None):
-        #subscription_type, status = self.parse_subscription_msg(self, msg)
-        #self.subscriptions[subscri  ption_type] = status
         self.log_info(code_here(),"Received subscription message {}".format(str(msg)))
         if 'pair' not in msg['data']:
             self.log_info(code_here(),"Subs msg is {}".format(str(msg)))

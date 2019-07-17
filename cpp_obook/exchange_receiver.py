@@ -18,7 +18,7 @@ import time
 import json
 
 class ExchangeInterface():
-    def __init__(self, currencies, key, secret, g_logger, subscriptions=None, order_manager=None, mode='listenner', no_orders_query=False, conf_file='interface.ini'):
+    def __init__(self, currencies, key, secret, g_logger, subscriptions=None, order_manager=None, mode='listenner', no_orders_query=False, conf_file='interface.ini', on_ignite=None):
         self.logger = g_logger
         # Initialise list rather than variable
         self.currencies = currencies
@@ -36,7 +36,7 @@ class ExchangeInterface():
         self.archive = {}
         self.latest_balance = {}
         self.error_messages = []
-        self.bid_orders, self.ask_orders = {}, {}
+        self.on_ignite = on_ignite
         self.discarded_messages = []
         self.messages_to_process = {}
         self.subscriptions = {}
@@ -48,7 +48,6 @@ class ExchangeInterface():
         self.oid = int(time.time())
         self.threads = {}
         self.nonce = int(time.time()/2+1331242423481)
-        # Initialse dict instead of variable ?
         self.sub_functions = {'orderbook':  self.subscribe_orderbook,
                               'ticker':     self.subscribe_ticker,
                               'balance':    self.subscribe_balance,
@@ -111,6 +110,7 @@ class ExchangeInterface():
         if "websock" not in self.threads:
             self.threads["websock"] = []
         self.threads["websock"].append(threading.Thread(target=self.setup_websocket))
+        if self.on_ignite: self.on_ignite()
         self.threads["websock"][-1].start()
         self.lets_listen = True
         print("There are {} threads or {} active threads".format(self.get_live_thread_number(), threading.activeCount()))
@@ -135,6 +135,7 @@ class ExchangeInterface():
             self.log_info(code_here(),"Length of messages waiting to process: {}".format(len(self.messages_to_process)))
 
     def on_error(self, error):
+        print("ERROR:", error)
         self.log_info(code_here(),str(error))
 
     def on_close(self):
@@ -160,14 +161,12 @@ class ExchangeInterface():
             time.sleep(1.1)
 
     def authenticate(self):
-        print("BEGINNING OF AUTH...")
-        time.sleep(1.6)
+        time.sleep(1)
         trials = 0
         self.websock.send(self.auth_msg)
         print("SENT AUTH MESSAGE")
-        time.sleep(1.6)
+        time.sleep(1)
         while not self.authenticated:
-            print("WAITING FOR AUTH...")
             time.sleep(1)
             trials += 1
             if trials >= 100:
@@ -318,7 +317,6 @@ class ExchangeInterface():
 
     def prepare_all_shms(self):
         self.data_shms, self.flags_shms = {}, {}
-
         if self.mode != 'listenner':
             return True
 

@@ -22,5 +22,5 @@ class BinanceInterface(object):
 	        self.on_orderbook_update(True, Decimal(bid[1]), Decimal(bid[0]))
 	    for ask in msg['a']:
 	        print("Inserting ask: {}@{}".format(Decimal(ask[1]), Decimal(ask[0])))
-	        self.on_orderbook_update(True, Decimal(ask[1]), Decimal(ask[0]))
+	        self.on_orderbook_update(False, Decimal(ask[1]), Decimal(ask[0]))
 
