@@ -18,6 +18,6 @@ def reset_orderbook():
 
 print('SHM path is', shm_name)
 cexio_logger = get_logger('Man Trade', 'mantrader.log')
-iface = BinanceInterface(["BTCUSDT"], key, secret, on_orderbook_update=display_insert, on_ignite=reset_orderbook)
+iface = BinanceInterface(["ZECBTC"], key, secret, on_orderbook_update=display_insert, on_ignite=reset_orderbook)
 iface.startup()
 print("Started !")

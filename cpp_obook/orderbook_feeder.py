@@ -18,6 +18,6 @@ def reset_orderbook():
 
 print('SHM path is', shm_name)
 cexio_logger = get_logger('Man Trade', 'mantrader.log')
-iface = CexioInterface("ETHUSD", key, secret, cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
+iface = CexioInterface("ZECBTC", key, secret, cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
 iface.startup()
 
