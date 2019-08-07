@@ -15,6 +15,7 @@ project(tutorial)
 
   add_library(orderbook_wrapper SHARED orderbook_wrapper.cpp sidebook.cpp orderbook.cpp orderbook_python_funcs.cpp sidebook_python_funcs.cpp)
   target_link_libraries(orderbook_wrapper ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+  target_link_libraries(orderbook_wrapper rt)
   add_dependencies(orderbook_wrapper Boost)
 
   set_target_properties(orderbook_wrapper PROPERTIES SUFFIX .so)
