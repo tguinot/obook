@@ -4,14 +4,13 @@ from decimal import Decimal
 
 
 class BinanceInterface(object):
-	def __init__(self, currencies, key, secret, on_orderbook_update=None, on_ignite=None):
+	def __init__(self, currencies, key, secret, logger, subscriptions=None, on_orderbook_update=None, on_ignite=None):
 		self.on_orderbook_update = on_orderbook_update
 		self.on_ignite = on_ignite
 		self.client = Client(key, secret)
 		self.binance_manager = BinanceSocketManager(self.client)
 		self.currencies = currencies
-		for currency in currencies:
-			self.partial = self.binance_manager.start_depth_socket(currency, self.insert_update)
+		self.partial = self.binance_manager.start_depth_socket(currencies, self.insert_update)
 
 	def startup(self):
 		self.binance_manager.start()
