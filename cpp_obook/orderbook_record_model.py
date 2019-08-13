@@ -15,9 +15,11 @@ class OrderbookRecord(db.Entity):
 	prices = Optional(FloatArray)
 	timestamp = Required(datetime.datetime, default=datetime.datetime.utcnow)
 
+database = sys.argv[6]
+port = sys.argv[7]
 
 sql_debug(True)
-db.bind(provider='postgres', host='localhost', database='postgres', port=5433)
+db.bind(provider='postgres', host='localhost', database=database, port=int(port))
 db.generate_mapping(create_tables=True)
 
 
