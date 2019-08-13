@@ -17,9 +17,10 @@ class OrderbookRecord(db.Entity):
 
 database = sys.argv[6]
 port = sys.argv[7]
+password = sys.argv[8]
 
 sql_debug(True)
-db.bind(provider='postgres', host='localhost', database=database, port=int(port))
+db.bind(provider='postgres', host='localhost', database=database, port=int(port), password=password)
 db.generate_mapping(create_tables=True)
 
 
