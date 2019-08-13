@@ -21,10 +21,15 @@ db.bind(provider='postgres', host='localhost', database='postgres', port=5433)
 db.generate_mapping(create_tables=True)
 
 
-shm_name = sys.argv[1]
-obh = RtOrderbookReader(shm_name)
+shm_name_a, shm_name_b = sys.argv[1], sys.argv[2]
+exchange_a, exchange_b = sys.argv[3], sys.argv[4]
+name = sys.argv[5]
 
-while True:
+
+obh_a, obh_b = RtOrderbookReader(shm_name_a), RtOrderbookReader(shm_name_b)
+
+
+def snapshot_orderbook(obh):
 	bids_prices, asks_prices = [], []
 	bids_sizes, asks_sizes = [], []
 	snap = obh.snapshot_bids()
@@ -47,9 +52,20 @@ while True:
 			if price < mini or price > maxi:
 				print("ORDERBOOK ASKS INCOHERENT:", snap)
 
+	return bids_sizes, bids_prices, asks_sizes, asks_prices
+
+
+def save_snapshot(name, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices):
+	OrderbookRecord(name=name, exchange=exchange, side='bid', sizes=bids_sizes, prices=bids_prices)
+	OrderbookRecord(name=name, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices)
+
+
+while True:
+	bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
+	bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b = snapshot_orderbook(obh_b)
 	with db_session:
-		OrderbookRecord(name=sys.argv[2], exchange=sys.argv[3], side='bid', sizes=bids_sizes, prices=bids_prices)
-		OrderbookRecord(name=sys.argv[2], exchange=sys.argv[3], side='ask', sizes=asks_sizes, prices=asks_prices)
+		save_snapshot(name, exchange_a, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a)
+		save_snapshot(name, exchange_b, bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b)
 
 	time.sleep(0.5)
 
