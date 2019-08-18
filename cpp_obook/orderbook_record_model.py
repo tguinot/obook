@@ -13,7 +13,7 @@ class OrderbookRecord(db.Entity):
 	side = Required(str)
 	sizes = Optional(FloatArray)
 	prices = Optional(FloatArray)
-	timestamp = Required(datetime.datetime, default=datetime.datetime.utcnow)
+	timestamp = Required(datetime.datetime)
 
 database = sys.argv[6]
 port = sys.argv[7]
@@ -58,17 +58,18 @@ def snapshot_orderbook(obh):
 	return bids_sizes, bids_prices, asks_sizes, asks_prices
 
 
-def save_snapshot(name, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices):
-	OrderbookRecord(name=name, exchange=exchange, side='bid', sizes=bids_sizes, prices=bids_prices)
-	OrderbookRecord(name=name, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices)
+def save_snapshot(name, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts):
+	OrderbookRecord(name=name, exchange=exchange, side='bid', sizes=bids_sizes, prices=bids_prices, timestamp=ts)
+	OrderbookRecord(name=name, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices, timestamp=ts)
 
 
 while True:
+	ts = datetime.datetime.utcnow()
 	bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
 	bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b = snapshot_orderbook(obh_b)
 	with db_session:
-		save_snapshot(name, exchange_a, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a)
-		save_snapshot(name, exchange_b, bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b)
+		save_snapshot(name, exchange_a, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
+		save_snapshot(name, exchange_b, bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b, ts)
 
 	time.sleep(0.5)
 
