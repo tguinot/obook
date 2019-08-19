@@ -3,6 +3,7 @@ from pony.orm import *
 from orderbook_helper import RtOrderbookReader
 import time
 import sys
+import requests
 
 db = Database()
 
@@ -15,18 +16,21 @@ class OrderbookRecord(db.Entity):
 	prices = Optional(FloatArray)
 	timestamp = Required(datetime.datetime)
 
-database = sys.argv[6]
-port = sys.argv[7]
-password = sys.argv[8]
+shm_paths = requests.get('http://localhost:5000/shm').json()
+
+
+name = sys.argv[1]
+database = sys.argv[2]
+port = sys.argv[3]
+password = sys.argv[4]
 
 sql_debug(True)
 db.bind(provider='postgres', host='localhost', database=database, port=int(port), password=password)
 db.generate_mapping(create_tables=True)
 
 
-shm_name_a, shm_name_b = sys.argv[1], sys.argv[2]
-exchange_a, exchange_b = sys.argv[3], sys.argv[4]
-name = sys.argv[5]
+shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
+exchange_a, exchange_b = 'cexio', 'binance'
 
 
 obh_a, obh_b = RtOrderbookReader(shm_name_a), RtOrderbookReader(shm_name_b)
