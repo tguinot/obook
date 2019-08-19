@@ -55,7 +55,6 @@ def launch_feeder(instrument, exchange, shm):
     cexio_logger = get_logger('Man Trade', 'mantrader.log')
     iface = interfaces[exchange](instrument, keys[exchange], secrets[exchange], cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
     iface.startup()
-    sys.exit(0)
 
 
 print('SHM paths are', str(shm_names.values()))
