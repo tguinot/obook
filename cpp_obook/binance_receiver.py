@@ -6,7 +6,7 @@ from decimal import Decimal
 class BinanceInterface(object):
     def __init__(self, currencies, key, secret, logger, subscriptions=None, on_orderbook_update=None, on_ignite=None):
         self.on_orderbook_update = on_orderbook_update
-        print("##################### Starting binance with keys", key, secret)
+        print("##################### Starting binance with keys", key, secret, "for symbol", currencies)
         self.on_ignite = on_ignite
         self.client = Client(key, secret)
         self.binance_manager = BinanceSocketManager(self.client)
