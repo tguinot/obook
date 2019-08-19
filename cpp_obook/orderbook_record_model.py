@@ -16,7 +16,7 @@ class OrderbookRecord(db.Entity):
 	prices = Optional(FloatArray)
 	timestamp = Required(datetime.datetime)
 
-shm_paths = requests.get('http://localhost:5000/shm').json()
+shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[5])).json()
 
 
 name = sys.argv[1]
