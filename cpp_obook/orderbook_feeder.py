@@ -7,7 +7,7 @@ from fractions import Fraction
 from orderbook_helper import RtOrderbookWriter
 import random
 import sys
-from multiprocessing import Process
+import threading
 import json
 import os
 from flask import Flask
@@ -61,7 +61,7 @@ def launch_feeder(instrument, exchange, shm):
 print('SHM paths are', str(shm_names.values()))
 
 for exchange, shm_name in shm_names.items():
-    p = Process(target=launch_feeder, args=(instrument, exchange, shm_name))
+    p = threading.Thread(target=launch_feeder, args=(instrument, exchange, shm_name))
     p.start()
 
 
