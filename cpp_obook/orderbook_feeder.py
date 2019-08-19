@@ -61,8 +61,9 @@ def launch_feeder(instrument, exchange, shm):
 print('SHM paths are', str(shm_names.values()))
 
 for exchange, shm_name in shm_names.items():
-    p = Process(target=launch_feeder, args=(instrument, exchange, shm_name))
-    p.start()
+    #p = Process(target=launch_feeder, args=(instrument, exchange, shm_name))
+    #p.start()
+    launch_feeder(instrument, exchange, shm_name)
 
 
 print("Started all orderbooks!")
