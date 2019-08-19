@@ -1,7 +1,8 @@
 from cexio_receiver import CexioInterface
 from binance_receiver import BinanceInterface
 from trade_logger import get_logger
-from cexio_keys import key, secret
+import cexio_keys
+import binance_keys
 from fractions import Fraction
 from orderbook_helper import RtOrderbookWriter
 import random
@@ -20,6 +21,8 @@ exchanges = os.environ.get("EXCHANGES").split()
 interfaces = {'cexio': CexioInterface,
               'binance': BinanceInterface}
 
+
+
 def generate_shms(exchanges):
     shm_names = {}
     for exchange in exchanges:
@@ -36,15 +39,21 @@ def hello_world():
 def launch_feeder(instrument, exchange, shm):
     writer = RtOrderbookWriter(shm)
 
+    keys = {'cexio': cexio_keys.key,
+        'binance': binance_keys.key}
+
+    secrets = {'cexio': cexio_keys.secret,
+        'binance': binance_keys.secret}
+
     def display_insert(side, quantity, price):
-        print("Inserting for {} {}: {}@{}".format(exchange, side, quantity, price))
+        print("Inserting from {} {}: {}@{}".format(exchange, side, quantity, price))
         writer.set_quantity_at(side, *quantity.as_integer_ratio(), *price.as_integer_ratio())
 
     def reset_orderbook():
         writer.reset_content()
 
     cexio_logger = get_logger('Man Trade', 'mantrader.log')
-    iface = interfaces[exchange](instrument, key, secret, cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
+    iface = interfaces[exchange](instrument, keys[exchange], secrets[exchange], cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
     iface.startup()
     sys.exit(0)
 
