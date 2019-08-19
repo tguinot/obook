@@ -12,9 +12,11 @@ class BinanceInterface(object):
         self.binance_manager = BinanceSocketManager(self.client)
         self.currencies = currencies
         self.partial = self.binance_manager.start_depth_socket(currencies, self.insert_update)
+        print("Binance interface INITIALISED")
 
     def startup(self):
         self.binance_manager.start()
+        print("Binance interface STARTED")
 
     def insert_update(self, msg):
         for bid in msg['b']:
