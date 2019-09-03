@@ -22,7 +22,6 @@ interfaces = {'cexio': CexioInterface,
               'binance': BinanceInterface}
 
 
-
 def generate_shms(exchanges):
     shm_names = {}
     for exchange in exchanges:

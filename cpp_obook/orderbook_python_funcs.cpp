@@ -1,11 +1,10 @@
 #include "orderbook.hpp"
-#include <boost/interprocess/sync/named_mutex.hpp>
 
 namespace py = boost::python;
 
 py::list OrderbookReader::_py_side_up_to_volume_(SideBook *sb, number target_volume) {
   py::list result;
-  scoped_lock<named_mutex> lock(*sb->mutex);
+  sharable_lock<named_upgradable_mutex> lock(*sb->mutex);
   for (sidebook_ascender it=sb->begin(); it!=sb->end(); ++it){
      if (price(it) == sb->get_default_value())
        break;
@@ -38,4 +37,9 @@ py::list OrderbookReader::py_snapshot_bids(int limit) {
 
 py::list OrderbookReader::py_snapshot_asks(int limit) {
   return asks->py_snapshot_to_limit(limit);
+}
+
+py::tuple OrderbookReader::py_first_price (bool side) {
+    number top_price = first_price(side);
+    return py::make_tuple(top_price.numerator(), top_price.denominator());
 }

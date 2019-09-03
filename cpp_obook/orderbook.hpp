@@ -32,9 +32,12 @@ class OrderbookReader {
     boost::python::list py_snapshot_bids(int);
     boost::python::list py_snapshot_asks(int);
 
+    boost::python::tuple py_first_price(bool);
+
     number first_price (bool side) {
       return side == BID ? price(bids->begin()) : price(asks->begin());
     }
+
     void display_side (order_side);
 };
 

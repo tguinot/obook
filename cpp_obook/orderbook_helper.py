@@ -5,6 +5,7 @@ import random
 class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter):
 	def __init__(self, path):
 		super().__init__()
+		print("Instantiated writer ")
 		self.init_shm(path)
 
 class RtOrderbookReader(orderbook_wrapper.OrderbookReader):
@@ -22,3 +23,6 @@ class RtOrderbookReader(orderbook_wrapper.OrderbookReader):
 		result = []
 		return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
 
+	def first_price(self, side):
+		price = super().first_price(side)
+		return float(Fraction(*price))
