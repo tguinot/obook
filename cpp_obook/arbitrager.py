@@ -18,6 +18,7 @@ asset = name[3:]
 shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
 exchange_a, exchange_b = 'cex', 'binance'
 
+
 exchanges = {}
 parameters = {  'cex': {
                     'apiKey': cexio_keys.key,
@@ -59,7 +60,7 @@ def init_exchanges():
 def order(side, exchange, symbol, amount, price):
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
     def work():
-        order = fn(symbol, amount, price)
+        order = fn(base+'/'+asset, amount, price)
         try:
             ex.cancel_order(order['id'])
         except ExchangeError as e:
