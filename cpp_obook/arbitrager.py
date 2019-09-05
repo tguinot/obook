@@ -59,7 +59,7 @@ def init_exchanges():
 def order(side, exchange, symbol, amount, price):
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
     def work():
-        order = fn(symbol amount, price)
+        order = fn(symbol, amount, price)
         try:
             ex.cancel_order(order['id'])
         except ExchangeError as e:
