@@ -36,7 +36,7 @@ obh_a, obh_b = RtOrderbookReader(shm_name_a), RtOrderbookReader(shm_name_b)
 
 balance = {}
 
-def crossing_ongoing(top_bids_a, top_asks_a, top_bids_b, top_asks_b, max_offset_pct=-0.5):
+def crossing_ongoing(top_bids_a, top_asks_a, top_bids_b, top_asks_b, max_offset_pct=-0.2):
     if len(top_asks_a) < 1  or len(top_bids_a) < 1:
         return False, False
     if len(top_asks_b) < 1  or len(top_bids_b) < 1:
@@ -59,11 +59,11 @@ def init_exchanges():
 def order(side, exchange, symbol, amount, price):
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
     def work():
-        #order = fn(symbol amount, price)
-        #try:
-            #ex.cancel_order(order['id'])
-        #except ExchangeError as e:
-        #    pass
+        order = fn(symbol amount, price)
+        try:
+            ex.cancel_order(order['id'])
+        except ExchangeError as e:
+            pass
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status('10092633520')))
     threading.Thread(target=work).start()
 
