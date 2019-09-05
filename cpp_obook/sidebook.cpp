@@ -1,7 +1,7 @@
 #include "sidebook.hpp"
 #include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
 #include <algorithm>
 
 number quantity(sidebook_content::iterator loc) {
@@ -36,11 +36,16 @@ void SideBook::setup_segment(std::string path, shm_mode mode){
 }
 
 SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
-    mutex = new named_mutex(open_or_create, path.c_str());
+    std::string mutex_path = path + "_mutex";
+    std::cout << "Creating upgradable mutex " << mutex_path << std::endl;
+    mutex = new named_upgradable_mutex(open_or_create, mutex_path.c_str());
+    std::cout << "Setting up SHM segment " << path << std::endl;
     setup_segment(path, mode);
+    std::cout << "Constructing SHM object " << path << std::endl;
     data = segment->find_or_construct< sidebook_content > ("unique")();
     default_value = fill_value;
     book_mode = mode;
+    std::cout << "Resetting SHM object " << path << std::endl;
     reset_content();
 }
 
@@ -49,7 +54,7 @@ void SideBook::reset_content(){
 }
 
 void SideBook::fill_with(number fillNumber){
-    scoped_lock<named_mutex> lock(*mutex);
+    scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
         (*i)[0] = fillNumber;
         (*i)[1] = fillNumber;
@@ -59,7 +64,7 @@ void SideBook::fill_with(number fillNumber){
 number** SideBook::snapshot_to_limit(int limit){
  number** result = new number*[limit];
  int i = 0;
- scoped_lock<named_mutex> lock(*mutex);
+ sharable_lock<named_upgradable_mutex> lock(*mutex);
  for (sidebook_ascender it=data->begin(); it!=data->end(); i++){
     if (i >= limit || price(it) == default_value)
       break;
@@ -98,14 +103,14 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {
-    scoped_lock<named_mutex> lock(*mutex);
+    scoped_lock<named_upgradable_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
     sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
     insert_at_place(data, to_insert, loc);
 }
 
 void SideBook::insert_bid(number new_price, number new_quantity) {
-    scoped_lock<named_mutex> lock(*mutex);
+    scoped_lock<named_upgradable_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
     sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
     insert_at_place(data, to_insert, loc);

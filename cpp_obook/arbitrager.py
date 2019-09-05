@@ -56,6 +56,17 @@ def init_exchanges():
         balance[name] = exchanges[name].fetch_balance()
         print("Instantiated exchange", name)
 
+def order(side, exchange, symbol, amount, price):
+    fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
+    def work():
+        #order = fn(symbol amount, price)
+        #try:
+            #ex.cancel_order(order['id'])
+        #except ExchangeError as e:
+        #    pass
+        print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status('10092633520')))
+    threading.Thread(target=work).start()
+
 
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
     available_base_a = balance[exchange_a][base]['free']
@@ -71,28 +82,23 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
         #exchanges[exchange_b].createLimitBuyOrder(name, amount, top_asks_b[0][0])
+        order('buy', exchange_b, name, amount, top_asks_b[0][0])
         print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_b)
         #exchanges[exchange_a].createLimitSellOrder(name, amount, top_bids_a[0][0])
+        order('sell', exchange_a, name, amount, top_bids_a[0][0])
     elif crossed_b:
         # Selling B buying A
         buyable_amount = available_base_a / top_asks_a[0][0]
         sellable_amount = available_asset_b
         amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
         print("Buying", amount, "@", top_asks_a[0][0], "on", exchange_b)
-        order_a = exchanges[exchange_a].createLimitBuyOrder(name, amount, top_asks_a[0][0])
+        # order_a = exchanges[exchange_a].createLimitBuyOrder(name, amount, top_asks_a[0][0])
+        order('buy', exchange_a, name, amount, top_asks_a[0][0])
         print("Selling", amount, "@", top_bids_b[0][0], "on", exchange_b)
-        order_b = exchanges[exchange_b].createLimitSellOrder(name, amount, top_bids_b[0][0])
+        # order_b = exchanges[exchange_b].createLimitSellOrder(name, amount, top_bids_b[0][0])
+        order('sell', exchange_b, name, amount, top_bids_b[0][0])
 
-    else:
-        return
-    try:
-        ex.cancel_order(order_a['id'])
-    except ExchangeError as e:
-        pass
-    try:
-        ex.cancel_order(order_b['id'])
-    except ExchangeError as e:
-        pass
+    
 
 init_exchanges()
 
@@ -108,5 +114,5 @@ while True:
             exchange_b, top_bids_b, exchange_a, top_asks_a, 100*((top_asks_a[0][0]/top_bids_b[0][0])-1)))
         send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b)
 
-    time.sleep(0.1)
+    time.sleep(0.01)
 

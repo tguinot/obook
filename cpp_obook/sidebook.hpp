@@ -1,6 +1,8 @@
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/containers/map.hpp>
+#include <boost/interprocess/sync/named_upgradable_mutex.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
 #include <array>
 #include <boost/python.hpp>
 #include <boost/python/list.hpp>
@@ -42,23 +44,23 @@ number price(sidebook_content::reverse_iterator loc);
 
 
 class SideBook {
-	mapped_region *region;
+    mapped_region *region;
     managed_shared_memory *segment;
     sidebook_content *data;
-	void_allocator *allocator;
+    void_allocator *allocator;
     number default_value;
     shm_mode book_mode;
 
     void fill_with(number);
 
-	void setup_segment (std::string, shm_mode);
+    void setup_segment (std::string, shm_mode);
     void insert_at_place(sidebook_content*, orderbook_entry_type, sidebook_content::iterator);
 
 	public:
         SideBook(std::string, shm_mode, number);
 
 
-        named_mutex *mutex;
+        named_upgradable_mutex *mutex;
         number** snapshot_to_limit(int);
         boost::python::list py_snapshot_to_limit(int);
 
