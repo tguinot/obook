@@ -65,7 +65,7 @@ def order(side, exchange, symbol, amount, price):
             ex.cancel_order(order['id'])
         except ExchangeError as e:
             pass
-        print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status('10092633520')))
+        print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
 
 
