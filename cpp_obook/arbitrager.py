@@ -71,7 +71,7 @@ def order(side, exchange, symbol, amount, price):
             pass
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
-    time.sleep(3)
+    time.sleep(10)
     for name in [exchange_a, exchange_b]:
         balance[name] = exchanges[name].fetch_balance()
 
