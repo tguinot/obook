@@ -60,6 +60,8 @@ def init_exchanges():
         print("Instantiated exchange", name)
 
 def order(side, exchange, symbol, amount, price):
+    if amount < 0.1:
+        return
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
     def work():
         order = fn(base+'/'+asset, amount, price)
