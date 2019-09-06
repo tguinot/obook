@@ -7,6 +7,7 @@ import threading
 import cexio_keys
 import binance_keys
 import sys
+import time
 import requests
 
 shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[2])).json()
@@ -68,6 +69,7 @@ def order(side, exchange, symbol, amount, price):
             pass
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
+    time.sleep(3)
 
 
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
