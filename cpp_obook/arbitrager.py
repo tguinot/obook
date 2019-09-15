@@ -56,6 +56,8 @@ def init_exchanges():
         if not exchange_class:
             continue 
         exchanges[name] = exchange_class(parameters[name])
+        if name == 'cex':
+            exchanges[name].options['createMarketBuyOrderRequiresPrice'] = False
         balance[name] = exchanges[name].fetch_balance()
         print("Instantiated exchange", name)
 
