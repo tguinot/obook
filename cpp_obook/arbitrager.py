@@ -71,10 +71,12 @@ def order(side, exchange, symbol, amount, price):
             pass
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
+    
+
+def refresh():
     time.sleep(10)
     for name in [exchange_a, exchange_b]:
         balance[name] = exchanges[name].fetch_balance()
-
 
 
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
@@ -95,6 +97,8 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_b)
         #exchanges[exchange_a].createLimitSellOrder(name, amount, top_bids_a[0][0])
         order('sell', exchange_a, name, amount, top_bids_a[0][0])
+        refresh()
+
     elif crossed_b:
         # Selling B buying A
         buyable_amount = available_base_a / top_asks_a[0][0]
@@ -106,6 +110,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         print("Selling", amount, "@", top_bids_b[0][0], "on", exchange_b)
         # order_b = exchanges[exchange_b].createLimitSellOrder(name, amount, top_bids_b[0][0])
         order('sell', exchange_b, name, amount, top_bids_b[0][0])
+        refresh()
 
     
 
