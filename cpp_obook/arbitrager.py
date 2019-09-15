@@ -65,12 +65,13 @@ def order(side, exchange, symbol, amount, price):
     if amount < 0.1:
         return
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
+
     def work():
         order = fn(base+'/'+asset, amount, price)
         try:
             ex.cancel_order(order['id'])
-        except ExchangeError as e:
-            pass
+        except Exception as e:
+            print("Could not place order:", base+'/'+asset, amount, price, e)
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
     
