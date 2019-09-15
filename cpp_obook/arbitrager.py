@@ -20,6 +20,11 @@ asset = name[3:]
 shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
 exchange_a, exchange_b = 'cex', 'binance'
 
+min_amounts = {
+    'ETH/BTC': 0.05,
+    'LTC/BTC': 0.05,
+}
+
 
 exchanges = {}
 parameters = {  'cex': {
@@ -67,11 +72,15 @@ def order(side, exchange, symbol, amount, price):
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
 
     def work():
-        order = fn(base+'/'+asset, amount, price)
+        try:
+            order = fn(base+'/'+asset, amount, price)
+        except Exception as e:
+            print("Could not place order:", base+'/'+asset, amount, price, e)
+            return
         try:
             ex.cancel_order(order['id'])
         except Exception as e:
-            print("Could not place order:", base+'/'+asset, amount, price, e)
+            print("Could not cancel order:", order['id'])
         print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
     threading.Thread(target=work).start()
     
@@ -94,6 +103,9 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         buyable_amount = available_base_b / top_asks_b[0][0]
         sellable_amount = available_asset_a
         amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
+        if amount < min_amounts[name]:
+            print("Too small opportunity", name, amount)
+            return
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
         #exchanges[exchange_b].createLimitBuyOrder(name, amount, top_asks_b[0][0])
         order('buy', exchange_b, name, amount, top_asks_b[0][0])
@@ -107,6 +119,9 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         buyable_amount = available_base_a / top_asks_a[0][0]
         sellable_amount = available_asset_b
         amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
+        if amount < min_amounts[name]:
+            print("Too small opportunity", name, amount)
+            return
         print("Buying", amount, "@", top_asks_a[0][0], "on", exchange_b)
         # order_a = exchanges[exchange_a].createLimitBuyOrder(name, amount, top_asks_a[0][0])
         order('buy', exchange_a, name, amount, top_asks_a[0][0])
