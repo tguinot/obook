@@ -21,8 +21,8 @@ shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
 exchange_a, exchange_b = 'cex', 'binance'
 
 min_amounts = {
-    'ETH/BTC': 0.05,
-    'LTC/BTC': 0.05,
+    'ETHBTC': 0.05,
+    'LTCBTC': 0.05,
 }
 
 
