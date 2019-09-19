@@ -14,8 +14,8 @@ shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[2])).json()
 
 
 name = sys.argv[1]
-base = name[:3]
-asset = name[3:]
+base = name[3:]
+asset = name[:3]
 
 shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
 exchange_a, exchange_b = 'cex', 'binance'
