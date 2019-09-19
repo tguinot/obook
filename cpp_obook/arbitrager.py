@@ -102,6 +102,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling A buying B
         buyable_amount = available_base_b / top_asks_b[0][0]
         sellable_amount = available_asset_a
+        print("Available buyable/sellable amounts are", available_base_b, sellable_amount, "with price", top_asks_b[0][0])
         amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
@@ -118,6 +119,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling B buying A
         buyable_amount = available_base_a / top_asks_a[0][0]
         sellable_amount = available_asset_b
+        print("Available buyable/sellable amounts are", available_base_a, sellable_amount, "with price", top_asks_a[0][0])
         amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
