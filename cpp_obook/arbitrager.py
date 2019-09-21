@@ -118,16 +118,16 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling A buying B
         buyable_amount = available_base_b / top_asks_b[0][0]
         sellable_amount = available_asset_a
-        print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
         amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
-            print("Too small opportunity", name, amount)
+            #print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
-            print("Balance of", exchange_a, ":")
-            print(balances[0])
-            print("Balance of", exchange_b, ":")
-            print(balances[1])
+            #print("Balance of", exchange_a, ":")
+            #print(balances[0])
+            #print("Balance of", exchange_b, ":")
+            #print(balances[1])
             return
+        print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
         order('buy', exchange_b, name, amount, top_asks_b[0][0])
         print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_b)
@@ -138,16 +138,16 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling B buying A
         buyable_amount = available_base_a / top_asks_a[0][0]
         sellable_amount = available_asset_b
-        print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
         amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
-            print("Balance of", exchange_a, ":")
-            print(balances[0])
-            print("Balance of", exchange_b, ":")
-            print(balances[1])
+            #print("Balance of", exchange_a, ":")
+            #print(balances[0])
+            #print("Balance of", exchange_b, ":")
+            #print(balances[1])
             return
+        print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
         print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_b)
         order('buy', exchange_a, name, amount, top_asks_a[0][0])
         print("Selling", amount, asset, "@", top_bids_b[0][0], base, "on", exchange_b)
