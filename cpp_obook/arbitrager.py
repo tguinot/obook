@@ -93,6 +93,20 @@ def refresh():
         balance[name] = exchanges[name].fetch_balance()
 
 
+def fetch_exchanges_balance_summary():
+    a = {k:v for k,v in exchanges[exchange_a].fetch_balance()['free'].items() if v > 0}
+    b = {k:v for k,v in exchanges[exchange_b].fetch_balance()['free'].items() if v > 0}
+    return a, b
+
+
+def print_balances_summary():
+    balances = fetch_exchanges_balance_summary()
+    print("Balance of", exchange_a, ":")
+    print(balances[0])
+    print("Balance of", exchange_b, ":")
+    print(balances[1])
+
+
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
     available_base_a = balance[exchange_a][base]['free']
     available_asset_a = balance[exchange_a][asset]['free']
@@ -108,6 +122,11 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
+            balances = fetch_exchanges_balance_summary()
+            print("Balance of", exchange_a, ":")
+            print(balances[0])
+            print("Balance of", exchange_b, ":")
+            print(balances[1])
             return
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
         order('buy', exchange_b, name, amount, top_asks_b[0][0])
@@ -123,6 +142,11 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
+            balances = fetch_exchanges_balance_summary()
+            print("Balance of", exchange_a, ":")
+            print(balances[0])
+            print("Balance of", exchange_b, ":")
+            print(balances[1])
             return
         print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_b)
         order('buy', exchange_a, name, amount, top_asks_a[0][0])
@@ -133,6 +157,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     
 
 init_exchanges()
+print_balances_summary()
 
 while True:
     ts = datetime.datetime.utcnow()
