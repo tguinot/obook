@@ -10,6 +10,8 @@ import binance_keys
 import sys
 import time
 import requests
+from math import floor, ceil
+
 
 shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[2])).json()
 
@@ -68,6 +70,11 @@ def init_exchanges():
         balance[name] = exchanges[name].fetch_balance()
         print("Instantiated exchange", name)
 
+
+def roundDown(n, d=4):
+    d = int('1' + ('0' * d))
+    return floor(n * d) / d
+
 def order(side, exchange, symbol, amount, price):
     fn = exchanges[exchange].createLimitSellOrder if side == 'sell' else exchanges[exchange].createLimitBuyOrder
 
@@ -118,7 +125,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling A buying B
         buyable_amount = available_base_b / top_asks_b[0][0]
         sellable_amount = available_asset_a
-        amount = min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount)
+        amount = roundDown(min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount))
         if amount < min_amounts[name]:
             #print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
@@ -138,7 +145,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # Selling B buying A
         buyable_amount = available_base_a / top_asks_a[0][0]
         sellable_amount = available_asset_b
-        amount = min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount)
+        amount = roundDown(min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount))
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
