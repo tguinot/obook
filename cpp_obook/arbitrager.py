@@ -73,11 +73,11 @@ def order(side, exchange, symbol, amount, price):
 
     def work():
         try:
-            order = fn(base+'/'+asset, amount, price)
+            order = fn(asset+'/'+base, amount, price)
             print("Order",  order['id'], "passed:")
             pprint(order)
         except Exception as e:
-            print("Could not place order:", base+'/'+asset, amount, price, e)
+            print("Could not place order:", asset+'/'+base, amount, price, e)
             return
         try:
             ex.cancel_order(order['id'])
