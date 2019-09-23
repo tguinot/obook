@@ -81,7 +81,7 @@ def order(side, exchange, symbol, amount, price):
     def work():
         try:
             order = fn(asset+'/'+base, amount, price)
-            print("Order",  order['id'], "passed:")
+            print("Order",  order['id'], "passed on", exchange)
             pprint(order)
         except Exception as e:
             print("Could not place order:", asset+'/'+base, amount, price, e)
@@ -90,7 +90,7 @@ def order(side, exchange, symbol, amount, price):
             ex.cancel_order(order['id'])
         except Exception as e:
             print("Could not cancel order:", order['id'])
-        print("Status for {} {} order {}@{} at {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'])))
+        print("Status for {} {} order {}@{} on {} is {}".format(side, symbol, exchange, amount, price, exchanges[exchange].fetch_order_status(order['id'], asset+'/'+base)))
     threading.Thread(target=work).start()
     
 
@@ -137,7 +137,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
         order('buy', exchange_b, name, amount, top_asks_b[0][0])
-        print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_b)
+        print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_a)
         order('sell', exchange_a, name, amount, top_bids_a[0][0])
         refresh()
 
@@ -155,7 +155,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
             #print(balances[1])
             return
         print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
-        print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_b)
+        print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_a)
         order('buy', exchange_a, name, amount, top_asks_a[0][0])
         print("Selling", amount, asset, "@", top_bids_b[0][0], base, "on", exchange_b)
         order('sell', exchange_b, name, amount, top_bids_b[0][0])
