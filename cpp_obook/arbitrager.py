@@ -95,9 +95,15 @@ def order(side, exchange, symbol, amount, price):
     
 
 def refresh():
-    time.sleep(10)
+    time.sleep(4)
     for name in [exchange_a, exchange_b]:
         balance[name] = exchanges[name].fetch_balance()
+
+def continuously_refresh():
+    while True:
+        for name in [exchange_a, exchange_b]:
+            balance[name] = exchanges[name].fetch_balance()
+    time.sleep(2)
 
 
 def fetch_exchanges_balance_summary():
@@ -164,6 +170,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     
 
 init_exchanges()
+threading.Thread(target=continuously_refresh).start()
 print_balances_summary()
 
 while True:
