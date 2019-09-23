@@ -170,8 +170,8 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     
 
 init_exchanges()
-threading.Thread(target=continuously_refresh).start()
 print_balances_summary()
+threading.Thread(target=continuously_refresh).start()
 
 while True:
     ts = datetime.datetime.utcnow()
