@@ -103,7 +103,7 @@ def continuously_refresh():
     while True:
         for name in [exchange_a, exchange_b]:
             balance[name] = exchanges[name].fetch_balance()
-    time.sleep(2)
+    time.sleep(7)
 
 
 def fetch_exchanges_balance_summary():
