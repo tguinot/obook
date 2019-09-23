@@ -102,7 +102,10 @@ def refresh():
 def continuously_refresh():
     while True:
         for name in [exchange_a, exchange_b]:
-            balance[name] = exchanges[name].fetch_balance()
+            try:
+                balance[name] = exchanges[name].fetch_balance()
+            except:
+                pass
     time.sleep(7)
 
 
@@ -133,12 +136,8 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         sellable_amount = available_asset_a
         amount = roundDown(min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount))
         if amount < min_amounts[name]:
-            #print("Too small opportunity", name, amount)
+            print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
-            #print("Balance of", exchange_a, ":")
-            #print(balances[0])
-            #print("Balance of", exchange_b, ":")
-            #print(balances[1])
             return
         print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
         print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
@@ -155,10 +154,6 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         if amount < min_amounts[name]:
             print("Too small opportunity", name, amount)
             balances = fetch_exchanges_balance_summary()
-            #print("Balance of", exchange_a, ":")
-            #print(balances[0])
-            #print("Balance of", exchange_b, ":")
-            #print(balances[1])
             return
         print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
         print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_a)
