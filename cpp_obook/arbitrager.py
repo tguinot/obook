@@ -4,22 +4,30 @@ from orderbook_helper import RtOrderbookReader
 import time
 import ccxt
 import threading
-import cexio_keys
 from pprint import pprint
-import binance_keys
 import sys
 import time
 import requests
 from math import floor, ceil
 
 
-shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[2])).json()
+shm_port = os.environ.get("SHM_PORT")
 
+# shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[2])).json()
+shm_paths = requests.get('http://localhost:{}/shm'.format(shm_port)).json()
 
-name = sys.argv[1]
+# name = sys.argv[1]
+name = os.environ.get("INSTRUMENT")
 
 asset = name[:3]
 base = name[3:]
+
+binance_key = os.environ.get("BINANCE_KEY")
+binance_secret = os.environ.get("BINANCE_SECRET")
+
+cexio_key = os.environ.get("CEXIO_KEY")
+cexio_secret = os.environ.get("CEXIO_SECRET")
+cexio_uid = os.environ.get("CEXIO_UID")
 
 shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
 exchange_a, exchange_b = 'cex', 'binance'
@@ -32,14 +40,14 @@ min_amounts = {
 
 exchanges = {}
 parameters = {  'cex': {
-                    'apiKey': cexio_keys.key,
-                    'uid': cexio_keys.uid,
-                    'secret': cexio_keys.secret,
+                    'apiKey': cexio_key,
+                    'uid': cexio_uid,
+                    'secret': cexio_secret,
                     'timeout': 30000, 
                     'enableRateLimit': True},
                 'binance': {
-                    'apiKey': binance_keys.key,
-                    'secret': binance_keys.secret,
+                    'apiKey': binance_key,
+                    'secret': binance_secret,
                     'timeout': 30000, 
                     'enableRateLimit': True}
 }
@@ -123,6 +131,20 @@ def print_balances_summary():
     print(balances[1])
 
 
+def prepare_and_send(top_asks, top_bids, available_base, available_asset):
+    buyable_amount = available_base / top_asks[0][0]
+    sellable_amount = available_asset
+    amount = roundDown(min(top_asks[0][1], top_bids[0][1], buyable_amount, sellable_amount))
+    if amount < min_amounts[name]:
+        print("Too small opportunity", name, amount)
+        return
+    print("A-Way Available buyable/sellable amounts are", available_base, base, sellable_amount, asset, "with price", top_asks[0][0])
+    print("Buying", amount, "@", top_asks[0][0], "on", exchange)
+    order('buy', exchange, name, amount, top_asks[0][0])
+    print("Selling", amount, "@", top_bids[0][0], "on", exchange)
+    order('sell', exchange, name, amount, top_bids[0][0])
+
+
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
     available_base_a = balance[exchange_a][base]['free']
     available_asset_a = balance[exchange_a][asset]['free']
@@ -131,36 +153,35 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     available_asset_b = balance[exchange_b][asset]['free']
 
     if crossed_a:
-        # Selling A buying B
-        buyable_amount = available_base_b / top_asks_b[0][0]
-        sellable_amount = available_asset_a
-        amount = roundDown(min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount))
-        if amount < min_amounts[name]:
-            print("Too small opportunity", name, amount)
-            balances = fetch_exchanges_balance_summary()
-            return
-        print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
-        print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
-        order('buy', exchange_b, name, amount, top_asks_b[0][0])
-        print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_a)
-        order('sell', exchange_a, name, amount, top_bids_a[0][0])
-        refresh()
+        prepare_and_send(top_asks_b, top_bids_a, available_base_b, available_asset_a)
+
+        # buyable_amount = available_base_b / top_asks_b[0][0]
+        # sellable_amount = available_asset_a
+        # amount = roundDown(min(top_asks_b[0][1], top_bids_a[0][1], buyable_amount, sellable_amount))
+        # if amount < min_amounts[name]:
+        #     print("Too small opportunity", name, amount)
+        #     return
+        # print("A-Way Available buyable/sellable amounts are", available_base_b, base, sellable_amount, asset, "with price", top_asks_b[0][0])
+        # print("Buying", amount, "@", top_asks_b[0][0], "on", exchange_b)
+        # order('buy', exchange_b, name, amount, top_asks_b[0][0])
+        # print("Selling", amount, "@", top_bids_a[0][0], "on", exchange_a)
+        # order('sell', exchange_a, name, amount, top_bids_a[0][0])
 
     elif crossed_b:
-        # Selling B buying A
-        buyable_amount = available_base_a / top_asks_a[0][0]
-        sellable_amount = available_asset_b
-        amount = roundDown(min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount))
-        if amount < min_amounts[name]:
-            print("Too small opportunity", name, amount)
-            balances = fetch_exchanges_balance_summary()
-            return
-        print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
-        print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_a)
-        order('buy', exchange_a, name, amount, top_asks_a[0][0])
-        print("Selling", amount, asset, "@", top_bids_b[0][0], base, "on", exchange_b)
-        order('sell', exchange_b, name, amount, top_bids_b[0][0])
-        refresh()
+        prepare_and_send(top_asks_a, top_bids_b, available_base_a, available_asset_b)
+
+        # buyable_amount = available_base_a / top_asks_a[0][0]
+        # sellable_amount = available_asset_b
+        # amount = roundDown(min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount))
+        # if amount < min_amounts[name]:
+        #     print("Too small opportunity", name, amount)
+        #     return
+        # print("B-Way Available buyable/sellable amounts are", available_base_a, base, sellable_amount, asset, "with price", top_asks_a[0][0])
+        # print("Buying", amount, asset, "@", top_asks_a[0][0], base, "on", exchange_a)
+        # order('buy', exchange_a, name, amount, top_asks_a[0][0])
+        # print("Selling", amount, asset, "@", top_bids_b[0][0], base, "on", exchange_b)
+        # order('sell', exchange_b, name, amount, top_bids_b[0][0])
+    refresh()
 
     
 
