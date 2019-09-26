@@ -132,7 +132,7 @@ def print_balances_summary():
     print(balances[1])
 
 
-def prepare_and_send(top_asks, top_bids, available_base, available_asset):
+def prepare_and_send(top_asks, top_bids, available_base, available_asset, exchange_one, exchange_two):
     buyable_amount = available_base / top_asks[0][0]
     sellable_amount = available_asset
     amount = roundDown(min(top_asks[0][1], top_bids[0][1], buyable_amount, sellable_amount))
@@ -140,10 +140,10 @@ def prepare_and_send(top_asks, top_bids, available_base, available_asset):
         print("Too small opportunity", name, amount)
         return
     print("A-Way Available buyable/sellable amounts are", available_base, base, sellable_amount, asset, "with price", top_asks[0][0])
-    print("Buying", amount, "@", top_asks[0][0], "on", exchange)
-    order('buy', exchange, name, amount, top_asks[0][0])
-    print("Selling", amount, "@", top_bids[0][0], "on", exchange)
-    order('sell', exchange, name, amount, top_bids[0][0])
+    print("Buying", amount, "@", top_asks[0][0], "on", exchange_one)
+    order('buy', exchange_one, name, amount, top_asks[0][0])
+    print("Selling", amount, "@", top_bids[0][0], "on", exchange_two)
+    order('sell', exchange_two, name, amount, top_bids[0][0])
 
 
 def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b):
@@ -154,7 +154,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     available_asset_b = balance[exchange_b][asset]['free']
 
     if crossed_a:
-        prepare_and_send(top_asks_b, top_bids_a, available_base_b, available_asset_a)
+        prepare_and_send(top_asks_b, top_bids_a, available_base_b, available_asset_a, exchange_b, exchange_a)
 
         # buyable_amount = available_base_b / top_asks_b[0][0]
         # sellable_amount = available_asset_a
@@ -169,7 +169,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # order('sell', exchange_a, name, amount, top_bids_a[0][0])
 
     elif crossed_b:
-        prepare_and_send(top_asks_a, top_bids_b, available_base_a, available_asset_b)
+        prepare_and_send(top_asks_a, top_bids_b, available_base_a, available_asset_b, exchange_a, exchange_b)
 
         # buyable_amount = available_base_a / top_asks_a[0][0]
         # sellable_amount = available_asset_b
@@ -182,7 +182,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
         # order('buy', exchange_a, name, amount, top_asks_a[0][0])
         # print("Selling", amount, asset, "@", top_bids_b[0][0], base, "on", exchange_b)
         # order('sell', exchange_b, name, amount, top_bids_b[0][0])
-    refresh()
+    #refresh()
 
     
 
