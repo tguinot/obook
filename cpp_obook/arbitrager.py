@@ -3,6 +3,7 @@ from pony.orm import *
 from orderbook_helper import RtOrderbookReader
 import time
 import ccxt
+import os
 import threading
 from pprint import pprint
 import sys
