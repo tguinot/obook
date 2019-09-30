@@ -171,6 +171,7 @@ def send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, cross
     elif crossed_b:
         prepare_and_send(top_asks_a, top_bids_b, available_base_a, available_asset_b, exchange_a, exchange_b)
 
+    time.sleep(7)
         # buyable_amount = available_base_a / top_asks_a[0][0]
         # sellable_amount = available_asset_b
         # amount = roundDown(min(top_asks_a[0][1], top_bids_b[0][1], buyable_amount, sellable_amount))
