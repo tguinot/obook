@@ -137,7 +137,6 @@ def prepare_and_send(top_asks, top_bids, available_base, available_asset, exchan
     sellable_amount = available_asset
     amount = roundDown(min(top_asks[0][1], top_bids[0][1], buyable_amount, sellable_amount))
     if amount < min_amounts[name]:
-        print("Too small opportunity", name, amount)
         return
     print("A-Way Available buyable/sellable amounts are", available_base, base, sellable_amount, asset, "with price", top_asks[0][0])
     print("Buying", amount, "@", top_asks[0][0], "on", exchange_one)
@@ -198,9 +197,9 @@ while True:
 
     crossed_a, crossed_b =  crossing_ongoing(top_bids_a, top_asks_a, top_bids_b, top_asks_b, max_offset_pct=-0.5)
     if crossed_a or crossed_b:
-        print("Crossing status @ {}: {} B: {} VS {} A:{}  ({}%) -------  {} B: {} VS {} A:{} ({}%)".format( 
-            ts, exchange_a, top_bids_a, exchange_b, top_asks_b, 100*((top_asks_b[0][0]/top_bids_a[0][0])-1),
-            exchange_b, top_bids_b, exchange_a, top_asks_a, 100*((top_asks_a[0][0]/top_bids_b[0][0])-1)))
+        #print("Crossing status @ {}: {} B: {} VS {} A:{}  ({}%) -------  {} B: {} VS {} A:{} ({}%)".format( 
+        #    ts, exchange_a, top_bids_a, exchange_b, top_asks_b, 100*((top_asks_b[0][0]/top_bids_a[0][0])-1),
+        #    exchange_b, top_bids_b, exchange_a, top_asks_a, 100*((top_asks_a[0][0]/top_bids_b[0][0])-1)))
         send_orders(top_asks_a, top_bids_a, top_asks_b, top_bids_b, crossed_a, crossed_b)
 
     time.sleep(0.01)
