@@ -19,3 +19,22 @@ feed/
 
 *.txt
 cpp_obook/Boost/src/Boost/boost/archive/basic_xml_oarchive.hpp
+cpp_obook/arbitrager.py
+cpp_obook/a.out
+cpp_obook/.settings/org.eclipse.cdt.codan.core.prefs
+cpp_obook/.project
+cpp_obook/.cproject
+cpp_obook/testMap.cpp
+cpp_obook/testrational.cpp
+ZmqOrderbook.py
+cpp_obook/obook/CMakeLists.txt.user
+cpp_obook/mantrader.log
+cpp_obook/Makefile
+cpp_obook/CMakeLists.txt.user.372ce2c.4.10-pre1
+cpp_obook/CMakeLists.txt.user
+cpp_obook/cmake_install.cmake
+cpp_obook/check_orderbook_sanity.py
+cpp_obook/cexio_keys.py
+cpp_obook/binance_keys.py
+cpp_obook/boost.cmake
+cpp_obook/BuildBoost.cmake
