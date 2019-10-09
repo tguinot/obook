@@ -38,3 +38,4 @@ cpp_obook/cexio_keys.py
 cpp_obook/binance_keys.py
 cpp_obook/boost.cmake
 cpp_obook/BuildBoost.cmake
+cpp_obook/arbitrager.py
