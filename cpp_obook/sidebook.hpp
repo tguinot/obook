@@ -66,6 +66,7 @@ class SideBook {
 
     void setup_segment (std::string, shm_mode);
     void insert_at_place(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
+    void _insert(number, number, bool (*comp)(orderbook_row_type, orderbook_row_type), exchange_type);
     void rotate_right_and_insert_entry(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
     void remove_entry(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
 
