@@ -77,6 +77,7 @@ class SideBook {
         boost::python::list py_snapshot_to_limit(int);
 
         void insert_ask(number, number, exchange_type);
+        void _insert(number, number, bool (*comp)(orderbook_row_type, orderbook_row_type), exchange_type);
         void insert_bid(number, number, exchange_type);
         void reset_content();
 
