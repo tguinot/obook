@@ -95,13 +95,13 @@ number SideBook::get_row_total(orderbook_row_type *loc){
 void SideBook::rotate_right_and_insert_entry(sidebook_content *content, orderbook_entry_type new_entry, exchange_type exchange, sidebook_content::iterator location) {
     std::rotate(location, content->end()-1, content->end());
     (*location)[0] = new_entry[0];
+    (*location)[1] = new_entry[1];
     (*location)[exchange] = new_entry[1];
-    (*location)[1] = get_row_total(location);
 }
 
 void SideBook::remove_entry(sidebook_content *content, orderbook_entry_type new_entry, exchange_type exchange, sidebook_content::iterator location) {
+    (*location)[1] -= (*location)[exchange];
     (*location)[exchange] = new_entry[1];
-    (*location)[1] = get_row_total(location);
     if ((*location)[1] != ZEROVAL)
         return;
     std::copy(location+1,content->end(), location);
@@ -120,8 +120,8 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
         remove_entry(data, to_insert, exchange, loc);
         // if price is the one at location and quantity is NOT 0, change quantity
     } else if (to_insert[1].numerator() != 0){
+        (*loc)[1] += (to_insert[1] - (*loc)[exchange]);
         (*loc)[exchange] = to_insert[1];
-        (*loc)[1] = get_row_total(loc);
     }
 }
 
