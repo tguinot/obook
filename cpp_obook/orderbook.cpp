@@ -56,11 +56,11 @@ void OrderbookWriter::reset_content(){
     asks->reset_content();
 }
 
-void OrderbookWriter::set_quantity_at (order_side side, number new_quantity, number new_price) {
+void OrderbookWriter::set_quantity_at (order_side side, number new_quantity, number new_price, exchange_type exchange) {
   if (side == ASK)
-    asks->insert_ask(new_price, new_quantity);
+    asks->insert_ask(new_price, new_quantity, exchange);
   else if (side == BID)
-    bids->insert_bid(new_price, new_quantity);
+    bids->insert_bid(new_price, new_quantity, exchange);
 }
 
 void OrderbookWriter::init_shm(std::string path) {

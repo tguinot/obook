@@ -2,6 +2,7 @@
 #include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
+#include <numeric>
 #include <algorithm>
 
 number quantity(sidebook_content::iterator loc) {
@@ -20,11 +21,11 @@ number price(sidebook_content::reverse_iterator loc) {
     return (*loc)[0];
 }
 
-bool compare_s(orderbook_entry_type a, orderbook_entry_type b){
+bool compare_s(orderbook_row_type a, orderbook_row_type b){
     return (a[0] < b[0]);
 }
 
-bool compare_b(orderbook_entry_type a, orderbook_entry_type b){
+bool compare_b(orderbook_row_type a, orderbook_row_type b){
     return (a[0] > b[0]);
 }
 
@@ -56,8 +57,9 @@ void SideBook::reset_content(){
 void SideBook::fill_with(number fillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
-        (*i)[0] = fillNumber;
-        (*i)[1] = fillNumber;
+        for (size_t j=0; j<=11; j++) {
+            (*i)[j] = fillNumber;
+        }
     }
 }
 
@@ -69,10 +71,12 @@ number** SideBook::snapshot_to_limit(int limit){
     if (i >= limit || price(it) == default_value)
       break;
 
-    result[i] = new number[2];
+    result[i] = new number[2+EXCHANGECOUNT];
     result[i][0] = price(it);
     result[i][1] = quantity(it);
-    //i++;
+    for (size_t j=2; j<=11; j++) {
+        result[i][j] =(*it)[j];
+    }
   }
   return result;
 }
@@ -85,33 +89,50 @@ sidebook_ascender SideBook::end() {
     return data->end();
 }
 
-void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_insert, sidebook_content::iterator loc){
+number SideBook::get_row_total(orderbook_row_type *loc){
+    number total = ZEROVAL;
+    number *start = loc->data();
+
+    return std::accumulate(start+2, start+2+EXCHANGECOUNT, total);
+}
+
+void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_insert, exchange_type exchange, sidebook_content::iterator loc){
     if (loc == data->end())
         return;
+    // if price is not the one at location, rotate right and insert at location
     if ((*loc)[0] != to_insert[0] && to_insert[1].numerator() != 0){
         std::rotate(loc, data->end()-1, data->end());
-
         (*loc)[0] = to_insert[0];
-        (*loc)[1] = to_insert[1];
+        (*loc)[exchange] = to_insert[1];
+        (*loc)[1] = get_row_total(loc);
+    // if price is the one at location and quantity is 0, rotate left and fill back with default val
     } else if ((*loc)[0] == to_insert[0] && to_insert[1].numerator() == 0) {
-        std::copy(loc+1,data->end(), loc);
-        data->back()[0] = default_value;
-        data->back()[1] = default_value;
+        (*loc)[exchange] = to_insert[1];
+        (*loc)[1] = get_row_total(loc);
+        if ((*loc)[1] == ZEROVAL) {
+            std::copy(loc+1,data->end(), loc);
+            data->back()[0] = default_value;
+            data->back()[1] = default_value;
+        }
+    // if price is the one at location and quantity is NOT 0, change quantity
     } else if (to_insert[1].numerator() != 0){
-        (*loc)[1] = to_insert[1];
+        (*loc)[exchange] = to_insert[1];
+        (*loc)[1] = get_row_total(loc);
     }
 }
 
-void SideBook::insert_ask(number new_price, number new_quantity) {
+void SideBook::insert_ask(number new_price, number new_quantity, exchange_type exchange) {
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
-    insert_at_place(data, to_insert, loc);
+    orderbook_row_type to_cmp = {new_price, new_quantity};
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_row_type>(data->begin(), data->end(), to_cmp, compare_s);
+    insert_at_place(data, to_insert, exchange, loc);
 }
 
-void SideBook::insert_bid(number new_price, number new_quantity) {
+void SideBook::insert_bid(number new_price, number new_quantity, exchange_type exchange) {
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
-    insert_at_place(data, to_insert, loc);
+    orderbook_row_type to_cmp = {new_price, new_quantity};
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_row_type>(data->begin(), data->end(), to_cmp, compare_b);
+    insert_at_place(data, to_insert, exchange, loc);
 }

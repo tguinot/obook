@@ -19,8 +19,8 @@ py::list OrderbookReader::_py_side_up_to_volume_(SideBook *sb, number target_vol
 }
 
 
-void OrderbookWriter::py_set_quantity_at (order_side side, base_number new_qty_n, base_number new_qty_d, base_number new_price_n, base_number new_price_d) {
-  set_quantity_at(side, number(new_qty_n, new_qty_d), number(new_price_n, new_price_d));
+void OrderbookWriter::py_set_quantity_at (order_side side, base_number new_qty_n, base_number new_qty_d, base_number new_price_n, base_number new_price_d, exchange_type exchange) {
+  set_quantity_at(side, number(new_qty_n, new_qty_d), number(new_price_n, new_price_d), exchange);
 }
 
 py::list OrderbookReader::py_bids_up_to_volume(number target_volume) {

@@ -47,7 +47,7 @@ class OrderbookWriter: public OrderbookReader {
   	
     void init_shm (std::string);
     void reset_content();
-    void set_quantity_at (order_side, number, number);
-    void py_set_quantity_at (order_side, base_number, base_number, base_number, base_number);
+    void set_quantity_at (order_side, number, number, exchange_type);
+    void py_set_quantity_at (order_side, base_number, base_number, base_number, base_number, exchange_type);
  };
 

@@ -15,6 +15,7 @@
 #define SIDEBOOK_SIZE       100
 #define ZEROVAL             number(0, 1)
 #define MAXVAL              number(2147483645, 1)
+#define EXCHANGECOUNT         10
 
 using namespace boost::interprocess;
 using boost::rational;
@@ -26,13 +27,22 @@ typedef managed_shared_memory::segment_manager 									 	segment_manager_t;
 typedef allocator<void, segment_manager_t>                           				void_allocator;
 
 typedef rational<base_number>                                                       number;
+
 typedef std::array<number, 2>                                                       orderbook_entry_type;
+typedef std::array<number, 4>                                                       orderbook_row_type;
+
+typedef orderbook_entry_type::iterator                                              entry_ascender;
+typedef orderbook_entry_type::reverse_iterator                                      entry_descender;
+
+typedef uint                                                                        exchange_type;
+
 typedef std::pair<number, number>                                                   orderbook_entry_rep;
 typedef std::vector<orderbook_entry_rep >                                           orderbook_extract;
 
-typedef std::array< orderbook_entry_type, SIDEBOOK_SIZE>                            sidebook_content;
+typedef std::array< orderbook_row_type, SIDEBOOK_SIZE>                              sidebook_content;
 typedef sidebook_content::iterator                                                  sidebook_ascender;
 typedef sidebook_content::reverse_iterator                                          sidebook_descender;
+
 
 number quantity(sidebook_content::iterator loc);
 
@@ -52,9 +62,10 @@ class SideBook {
     shm_mode book_mode;
 
     void fill_with(number);
+    number get_row_total(orderbook_row_type*);
 
     void setup_segment (std::string, shm_mode);
-    void insert_at_place(sidebook_content*, orderbook_entry_type, sidebook_content::iterator);
+    void insert_at_place(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
 
 	public:
         SideBook(std::string, shm_mode, number);
@@ -64,8 +75,8 @@ class SideBook {
         number** snapshot_to_limit(int);
         boost::python::list py_snapshot_to_limit(int);
 
-        void insert_ask(number, number);
-        void insert_bid(number, number);
+        void insert_ask(number, number, exchange_type);
+        void insert_bid(number, number, exchange_type);
         void reset_content();
 
         number get_default_value() {
