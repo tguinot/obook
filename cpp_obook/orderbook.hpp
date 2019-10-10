@@ -14,13 +14,13 @@ typedef bool order_side;
 
 
 class OrderbookReader {
-  protected:
+protected:
     SideBook *bids, *asks;
     std::pair<number**, int> _side_up_to_volume_(SideBook*, number);
     boost::python::list _py_side_up_to_volume_(SideBook*, number);
 
 
-  public:
+public:
     virtual void init_shm (std::string);
 
     std::pair<number**, int> bids_up_to_volume (number);
@@ -35,7 +35,7 @@ class OrderbookReader {
     boost::python::tuple py_first_price(bool);
 
     number first_price (bool side) {
-      return side == BID ? price(bids->begin()) : price(asks->begin());
+        return side == BID ? price(bids->begin()) : price(asks->begin());
     }
 
     void display_side (order_side);
@@ -43,11 +43,11 @@ class OrderbookReader {
 
 
 class OrderbookWriter: public OrderbookReader {
-  public:
-  	
+public:
+
     void init_shm (std::string);
     void reset_content();
     void set_quantity_at (order_side, number, number, exchange_type);
     void py_set_quantity_at (order_side, base_number, base_number, base_number, base_number, exchange_type);
- };
+};
 
