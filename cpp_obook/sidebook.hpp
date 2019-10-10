@@ -15,7 +15,7 @@
 #define SIDEBOOK_SIZE       100
 #define ZEROVAL             number(0, 1)
 #define MAXVAL              number(2147483645, 1)
-#define EXCHANGECOUNT         10
+#define EXCHANGECOUNT       10
 
 using namespace boost::interprocess;
 using boost::rational;
@@ -29,7 +29,7 @@ typedef allocator<void, segment_manager_t>                           				void_al
 typedef rational<base_number>                                                       number;
 
 typedef std::array<number, 2>                                                       orderbook_entry_type;
-typedef std::array<number, 4>                                                       orderbook_row_type;
+typedef std::array<number, EXCHANGECOUNT+2>                                         orderbook_row_type;
 
 typedef orderbook_entry_type::iterator                                              entry_ascender;
 typedef orderbook_entry_type::reverse_iterator                                      entry_descender;

@@ -31,7 +31,7 @@ bool compare_b(orderbook_row_type a, orderbook_row_type b){
 
 void SideBook::setup_segment(std::string path, shm_mode mode){
     if (mode == read_write_shm)
-        segment = new managed_shared_memory(open_or_create, path.c_str(), 90000);
+        segment = new managed_shared_memory(open_or_create, path.c_str(), 360000);
     else if (mode == read_shm)
         segment = new managed_shared_memory(open_only, path.c_str());
 }
@@ -57,7 +57,7 @@ void SideBook::reset_content(){
 void SideBook::fill_with(number fillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
-        for (size_t j=0; j<=11; j++) {
+        for (size_t j=0; j<12; j++) {
             (*i)[j] = fillNumber;
         }
     }
@@ -74,8 +74,8 @@ number** SideBook::snapshot_to_limit(int limit){
     result[i] = new number[2+EXCHANGECOUNT];
     result[i][0] = price(it);
     result[i][1] = quantity(it);
-    for (size_t j=2; j<=11; j++) {
-        result[i][j] =(*it)[j];
+    for (size_t j=2; j<12; j++) {
+        result[i][j] = (*it)[j];
     }
   }
   return result;

@@ -22,7 +22,6 @@ class RtOrderbookReader(orderbook_wrapper.OrderbookReader):
 				row.append(float(Fraction(*tup)))
 			result.append(row)
 		return result
-		#return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
 
 	def snapshot_asks(self, max_limit=10):
 		raw_result = super().snapshot_asks(max_limit)
@@ -33,7 +32,6 @@ class RtOrderbookReader(orderbook_wrapper.OrderbookReader):
 				row.append(float(Fraction(*tup)))
 			result.append(row)
 		return result
-		#return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
 
 	def first_price(self, side):
 		price = super().first_price(side)
