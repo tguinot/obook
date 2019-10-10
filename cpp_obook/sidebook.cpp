@@ -57,27 +57,25 @@ void SideBook::reset_content(){
 void SideBook::fill_with(number fillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
-        for (size_t j=0; j<EXCHANGECOUNT+2; j++) {
+        for (size_t j=0; j<EXCHANGECOUNT+2; j++)
             (*i)[j] = fillNumber;
-        }
     }
 }
 
 number** SideBook::snapshot_to_limit(int limit){
- number** result = new number*[limit];
- int i = 0;
- sharable_lock<named_upgradable_mutex> lock(*mutex);
- for (sidebook_ascender it=data->begin(); it!=data->end(); i++){
-    if (i >= limit || price(it) == default_value)
-        break;
-    result[i] = new number[2+EXCHANGECOUNT];
-    result[i][0] = price(it);
-    result[i][1] = quantity(it);
-    for (size_t j=2; j<EXCHANGECOUNT+2; j++) {
-        result[i][j] = (*it)[j];
+    number** result = new number*[limit];
+    int i = 0;
+    sharable_lock<named_upgradable_mutex> lock(*mutex);
+    for (sidebook_ascender it=data->begin(); it!=data->end(); i++){
+        if (i >= limit || price(it) == default_value)
+            break;
+        result[i] = new number[2+EXCHANGECOUNT];
+        result[i][0] = price(it);
+        result[i][1] = quantity(it);
+        for (size_t j=2; j<EXCHANGECOUNT+2; j++)
+            result[i][j] = (*it)[j];
     }
-  }
-  return result;
+    return result;
 }
 
 sidebook_ascender SideBook::begin() {
@@ -117,10 +115,10 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
     // if price is not the one at location, rotate right and insert at location
     if ((*loc)[0] != to_insert[0] && to_insert[1].numerator() != 0){
         rotate_right_and_insert_entry(data, to_insert, exchange, loc);
-    // if price is the one at location and quantity is 0, rotate left and fill back with default val
+        // if price is the one at location and quantity is 0, rotate left and fill back with default val
     } else if ((*loc)[0] == to_insert[0] && to_insert[1].numerator() == 0) {
         remove_entry(data, to_insert, exchange, loc);
-    // if price is the one at location and quantity is NOT 0, change quantity
+        // if price is the one at location and quantity is NOT 0, change quantity
     } else if (to_insert[1].numerator() != 0){
         (*loc)[exchange] = to_insert[1];
         (*loc)[1] = get_row_total(loc);
