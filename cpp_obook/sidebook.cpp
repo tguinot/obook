@@ -31,7 +31,7 @@ bool compare_b(orderbook_row_type a, orderbook_row_type b){
 
 void SideBook::setup_segment(std::string path, shm_mode mode){
     if (mode == read_write_shm)
-        segment = new managed_shared_memory(open_or_create, path.c_str(), 360000);
+        segment = new managed_shared_memory(open_or_create, path.c_str(), 500000);
     else if (mode == read_shm)
         segment = new managed_shared_memory(open_only, path.c_str());
 }
@@ -57,7 +57,7 @@ void SideBook::reset_content(){
 void SideBook::fill_with(number fillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
-        for (size_t j=0; j<12; j++) {
+        for (size_t j=0; j<EXCHANGECOUNT+2; j++) {
             (*i)[j] = fillNumber;
         }
     }
@@ -70,11 +70,10 @@ number** SideBook::snapshot_to_limit(int limit){
  for (sidebook_ascender it=data->begin(); it!=data->end(); i++){
     if (i >= limit || price(it) == default_value)
       break;
-
     result[i] = new number[2+EXCHANGECOUNT];
     result[i][0] = price(it);
     result[i][1] = quantity(it);
-    for (size_t j=2; j<12; j++) {
+    for (size_t j=2; j<EXCHANGECOUNT+2; j++) {
         result[i][j] = (*it)[j];
     }
   }
@@ -92,8 +91,24 @@ sidebook_ascender SideBook::end() {
 number SideBook::get_row_total(orderbook_row_type *loc){
     number total = ZEROVAL;
     number *start = loc->data();
-
     return std::accumulate(start+2, start+2+EXCHANGECOUNT, total);
+}
+
+void SideBook::rotate_right_and_insert_entry(sidebook_content *content, orderbook_entry_type new_entry, exchange_type exchange, sidebook_content::iterator location) {
+    std::rotate(location, content->end()-1, content->end());
+    (*location)[0] = new_entry[0];
+    (*location)[exchange] = new_entry[1];
+    (*location)[1] = get_row_total(location);
+}
+
+void SideBook::remove_entry(sidebook_content *content, orderbook_entry_type new_entry, exchange_type exchange, sidebook_content::iterator location) {
+    (*location)[exchange] = new_entry[1];
+    (*location)[1] = get_row_total(location);
+    if ((*location)[1] == ZEROVAL) {
+        std::copy(location+1,content->end(), location);
+        content->back()[0] = default_value;
+        content->back()[1] = default_value;
+    }
 }
 
 void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_insert, exchange_type exchange, sidebook_content::iterator loc){
@@ -101,19 +116,10 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
         return;
     // if price is not the one at location, rotate right and insert at location
     if ((*loc)[0] != to_insert[0] && to_insert[1].numerator() != 0){
-        std::rotate(loc, data->end()-1, data->end());
-        (*loc)[0] = to_insert[0];
-        (*loc)[exchange] = to_insert[1];
-        (*loc)[1] = get_row_total(loc);
+        rotate_right_and_insert_entry(data, to_insert, exchange, loc);
     // if price is the one at location and quantity is 0, rotate left and fill back with default val
     } else if ((*loc)[0] == to_insert[0] && to_insert[1].numerator() == 0) {
-        (*loc)[exchange] = to_insert[1];
-        (*loc)[1] = get_row_total(loc);
-        if ((*loc)[1] == ZEROVAL) {
-            std::copy(loc+1,data->end(), loc);
-            data->back()[0] = default_value;
-            data->back()[1] = default_value;
-        }
+        remove_entry(data, to_insert, exchange, loc);
     // if price is the one at location and quantity is NOT 0, change quantity
     } else if (to_insert[1].numerator() != 0){
         (*loc)[exchange] = to_insert[1];

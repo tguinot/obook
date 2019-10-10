@@ -66,10 +66,11 @@ class SideBook {
 
     void setup_segment (std::string, shm_mode);
     void insert_at_place(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
+    void rotate_right_and_insert_entry(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
+    void remove_entry(sidebook_content*, orderbook_entry_type, exchange_type, sidebook_content::iterator);
 
 	public:
         SideBook(std::string, shm_mode, number);
-
 
         named_upgradable_mutex *mutex;
         number** snapshot_to_limit(int);
