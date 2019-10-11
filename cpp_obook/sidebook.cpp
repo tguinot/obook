@@ -51,14 +51,15 @@ SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
 }
 
 void SideBook::reset_content(){
-    if (book_mode == read_write_shm) fill_with(default_value);
+    if (book_mode == read_write_shm) fill_with(default_value, ZEROVAL);
 }
 
-void SideBook::fill_with(number fillNumber){
+void SideBook::fill_with(number priceFillNumber, number quantityFillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
-        for (size_t j=0; j<EXCHANGECOUNT+2; j++)
-            (*i)[j] = fillNumber;
+        (*i)[0] = priceFillNumber;
+        for (size_t j=1; j<EXCHANGECOUNT+2; j++)
+            (*i)[j] = quantityFillNumber;
     }
 }
 

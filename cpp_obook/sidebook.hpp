@@ -61,7 +61,7 @@ class SideBook {
     number default_value;
     shm_mode book_mode;
 
-    void fill_with(number);
+    void fill_with(number, number);
     number get_row_total(orderbook_row_type*);
 
     void setup_segment (std::string, shm_mode);
