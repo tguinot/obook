@@ -26,8 +26,8 @@ public:
     std::pair<number**, int> bids_up_to_volume (number);
     std::pair<number**, int> asks_up_to_volume (number);
 
-    boost::python::list py_asks_up_to_volume(number target_volume);
-    boost::python::list py_bids_up_to_volume(number target_volume);
+    boost::python::list py_asks_up_to_volume(number);
+    boost::python::list py_bids_up_to_volume(number);
 
     boost::python::list py_snapshot_bids(int);
     boost::python::list py_snapshot_asks(int);
