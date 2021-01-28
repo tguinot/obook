@@ -7,14 +7,14 @@ import argparse
 
 def run(path, orderbook):
     for zipped_file in os.listdir():
-    with gzip.open(zipped_filed) as f:
-        packed = f.read()
-    updates = umsgpack.loads(packed)
-    sorted_updates = sorted(unpacked, key=lambda s: s['seqnum'])
-    if mode == 'update':
-        insert_all_updates(sorted_updates, orderbook)
-    elif mode == 'snapshot':
-        insert_all_snapshots(sorted_updates, orderbook)
+        with gzip.open(zipped_filed) as f:
+            packed = f.read()
+        updates = umsgpack.loads(packed)
+        sorted_updates = sorted(unpacked, key=lambda s: s['seqnum'])
+        if mode == 'update':
+            insert_all_updates(sorted_updates, orderbook)
+        elif mode == 'snapshot':
+            insert_all_snapshots(sorted_updates, orderbook)
 
 
 def insert_all_updates(updates, orderbook):
