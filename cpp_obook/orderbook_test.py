@@ -2,7 +2,9 @@ from multiprocessing import Process, Lock, Value
 import os
 import random
 import time
-from orderbook_helper import RtOrderbookWriter, RtOrderbookReader
+from orderbook_helper import RtOrderbookWriter
+from orderbook_helper import RtOrderbookReader
+
 
 def info(title):
     print(title)
