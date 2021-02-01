@@ -32,6 +32,6 @@ class UniversalFeedListenner(zerorpc.Client):
 
     def listen(self):
         while True:
-            string = umsgpack.loads(self.zmq_socket.recv())
-            print("Received:", string)
+            update = umsgpack.loads(self.zmq_socket.recv())
+            self.on_orderbook_update(update)
     
