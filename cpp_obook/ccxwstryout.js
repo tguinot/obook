@@ -3,19 +3,22 @@ var zerorpc = require("zerorpc");
 var zmq = require("zeromq");
 var msgpack = require('msgpack');
 
+const supported_exchanges = ['FTX'];
 var exchanges_interfaces = {};
 
-exchanges_interfaces['FTX'] = new ccxws.Ftx();
-exchanges_interfaces['FTX'].on("trade", trade => {
-    console.log("Received trade")
-    for (const [sock_name, publish] of Object.entries(publish_socks)) {
-        if (trade.exchange+trade.base+trade.quote == sock_name) {
-            console.log("Redirecting trade of", sock_name)
-            publish_socks[sock_name]['sock'].send(msgpack.pack(trade));
-            break;
+supported_exchanges.forEach(exchange_name =>  {
+    exchanges_interfaces[exchange_name] = new ccxws.Ftx();
+    exchanges_interfaces[exchange_name].on("trade", trade => {
+        console.log("Received trade")
+        for (const [sock_name, publish] of Object.entries(publish_socks)) {
+            if (trade.exchange+trade.base+trade.quote == sock_name) {
+                console.log("Redirecting trade of", sock_name)
+                publish_socks[sock_name]['sock'].send(msgpack.pack(trade));
+                break;
+            }
         }
-    }
-});
+    });
+})
 
 var publish_socks = {}
 
