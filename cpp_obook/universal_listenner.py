@@ -6,13 +6,13 @@ import time
 import os
 
 class UniversalFeedListenner(zerorpc.Client):
-    def __init__(self, relayer_addr, zmq_port, relayer_port, exchange, instrument, on_orderbook_update=None, on_trade_update=None):
+    def __init__(self, relayer_addr, relayer_port, exchange, instrument, update_type='trade', on_receive=None):
         super().__init__()
         self.exchange = exchange
+        self.update_type = update_type
         self.instrument = instrument
         self.connect(f"tcp://{relayer_addr}:{relayer_port}")
-        self.on_orderbook_update = on_orderbook_update
-        self.on_trade_update = on_trade_update
+        self.on_receive = on_receive
         self.setup_zmq()
 
     def run(self):
@@ -25,13 +25,17 @@ class UniversalFeedListenner(zerorpc.Client):
         self.zmq_socket = self.context.socket(zmq.SUB)
 
     def subscribe(self):
-        port = self.subscribe_orderbook(self.exchange, self.instrument)
-        print("Subscribing to orderbook on port", port)
-        self.zmq_socket.connect("tcp://{}:{}".format("127.0.0.1", self.zmq_port))
+        print("Querying for connection details")
+        if self.update_type == 'trade':
+            details = self.subscribe_trades(self.exchange, self.instrument)
+        elif self.update_type == 'orderbook':
+            details = self.subscribe_orderbook(self.exchange, self.instrument)
+        print("Subscribing to relay details", details)
+        self.zmq_socket.connect("tcp://{}:{}".format(details['addr'], details['port']))
         self.zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
     def listen(self):
         while True:
             update = umsgpack.loads(self.zmq_socket.recv())
-            self.on_orderbook_update(update)
+            self.on_receive(update)
     

@@ -44,7 +44,7 @@ var server = new zerorpc.Server({
 
         console.log("Sending back socket details", publish_socks[socket_name]['port'])
 
-        reply(null, publish_socks[socket_name]['port']);
+        reply(null, {addr: '127.0.0.1', port: publish_socks[socket_name]['port']});
     }
 });
 
