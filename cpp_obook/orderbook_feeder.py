@@ -1,25 +1,17 @@
-from cexio_receiver import CexioInterface
-from binance_receiver import BinanceInterface
 from trade_logger import get_logger
-import cexio_keys
-import binance_keys
 from fractions import Fraction
 from orderbook_helper import RtOrderbookWriter
 import random
 import sys
 import threading
 import json
+import time
 import os
 from flask import Flask
 import os
+import universal_listenner
 
 app = Flask(__name__)
-
-instrument = os.environ.get("INSTRUMENT")
-exchanges = os.environ.get("EXCHANGES").split()
-
-interfaces = {'cexio': CexioInterface,
-              'binance': BinanceInterface}
 
 
 def generate_shms(exchanges):
@@ -28,41 +20,54 @@ def generate_shms(exchanges):
         shm_names[exchange] = '/shm' + str(random.random())
     return shm_names
 
-shm_names = generate_shms(exchanges)
-
 @app.route('/shm')
 def hello_world():
     return json.dumps(shm_names)
 
 
-def launch_feeder(instrument, exchange, shm):
-    writer = RtOrderbookWriter(shm)
+class OrderbookFeeder(object):
+    def __init__(self, shm, exchange, market):
+        print('SHM path is', str(shm))
+        self.writer = RtOrderbookWriter(shm)
+        self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', '4242', 'Binance', market, 'orderbook', on_receive=self.display_insert)
+        print("Starting up Feed Listenner!")
+    
+    def run(self):
+        self.lstr.run()
 
-    keys = {'cexio': cexio_keys.key,
-        'binance': binance_keys.key}
-
-    secrets = {'cexio': cexio_keys.secret,
-        'binance': binance_keys.secret}
-
-    def display_insert(side, quantity, price):
+    def display_insert(self, side, quantity, price):
         print("Inserting from {} {}: {}@{}".format(exchange, side, quantity, price))
-        writer.set_quantity_at(side, *quantity.as_integer_ratio(), *price.as_integer_ratio())
+        self.writer.set_quantity_at(side, *quantity.as_integer_ratio(), *price.as_integer_ratio())
 
-    def reset_orderbook():
-        writer.reset_content()
+    def reset_orderbook(self):
+        self.writer.reset_content()
 
-    cexio_logger = get_logger('Man Trade', 'mantrader.log')
-    iface = interfaces[exchange](instrument, keys[exchange], secrets[exchange], cexio_logger, subscriptions=["orderbook"], on_orderbook_update=display_insert, on_ignite=reset_orderbook)
-    print("Starting up interface!")
-    iface.startup()
+all_feeders = []
 
-
-print('SHM paths are', str(shm_names.values()))
-
-for exchange, shm_name in shm_names.items():
-    p = threading.Thread(target=launch_feeder, args=(instrument, exchange, shm_name))
-    p.start()
+def launch_feeder(shm_name, exchange, market):
+    feeder = OrderbookFeeder(shm_name, exchange, market)
+    print("Saving orderbook feeder for", exchange, market)
+    all_feeders.append(feeder)
+    feeder.run()
+    while True:
+        time.sleep(2)
 
 
-print("Started all orderbooks!")
+if __name__ == "__main__":
+    market = {
+        "id": "BTCUSDT",
+        "base": "BTC",
+        "quote": "USDT",
+    }
+
+    exchanges = ['binance']
+
+    shm_names = generate_shms(exchanges)
+
+    for exchange, shm_name in shm_names.items():
+        p = threading.Thread(target=launch_feeder, args=(shm_name, exchange, market))
+        p.start()
+
+
+    print("Started all orderbooks!")
 

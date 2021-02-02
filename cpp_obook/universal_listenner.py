@@ -11,6 +11,7 @@ class UniversalFeedListenner(zerorpc.Client):
         self.exchange = exchange
         self.update_type = update_type
         self.instrument = instrument
+        print("Connecting to", f"tcp://{relayer_addr}:{relayer_port}")
         self.connect(f"tcp://{relayer_addr}:{relayer_port}")
         self.on_receive = on_receive
         self.setup_zmq()
@@ -35,7 +36,10 @@ class UniversalFeedListenner(zerorpc.Client):
         self.zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
     def listen(self):
+        print("Now listenning...")
         while True:
             update = umsgpack.loads(self.zmq_socket.recv())
+            print("Received update:", update)
             self.on_receive(update)
+            time.sleep(0.002)
     
