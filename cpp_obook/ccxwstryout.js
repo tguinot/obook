@@ -3,28 +3,33 @@ var zerorpc = require("zerorpc");
 var zmq = require("zeromq");
 var msgpack = require('msgpack');
 
-const supported_exchanges = ['Binance'];
-var exchanges_interfaces = {};
+
+const supported_exchanges = ['Binance', 'FTX'];
+var publish_socks = {}
+
+const exchanges_interfaces = {
+    'Binance':  new ccxws.Binance(),
+    'FTX':      new ccxws.Ftx(),
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
 
 supported_exchanges.forEach(exchange_name =>  {
-    exchanges_interfaces[exchange_name] = new ccxws.Binance();
-
     exchanges_interfaces[exchange_name].on("trade", trade => {
-        console.log("Received trade")
         for (const [sock_name, publish] of Object.entries(publish_socks)) {
             if ("trade"+trade.exchange+trade.base+trade.quote == sock_name) {
-                console.log("Redirecting trade of", sock_name)
                 publish_socks[sock_name]['sock'].send(msgpack.pack(trade));
                 break;
             }
         }
     });
 
-    exchanges_interfaces[exchange_name].on("l2snapshot", ob => {
-        // console.log("Received ob update", ob)
+    exchanges_interfaces[exchange_name].on("l2update", ob => {
+        console.log("Received OB update", ob)
         for (const [sock_name, publish] of Object.entries(publish_socks)) {
             if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {
-                console.log("Redirecting ob update of", sock_name)
                 publish_socks[sock_name]['sock'].send(msgpack.pack(ob));
                 break;
             } else {
@@ -33,12 +38,6 @@ supported_exchanges.forEach(exchange_name =>  {
         }
     });
 })
-
-var publish_socks = {}
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
-}
 
 var server = new zerorpc.Server({
     subscribe_trades: function(exchange, instrument, reply) {
@@ -57,7 +56,6 @@ var server = new zerorpc.Server({
         }
 
         console.log("Sending back socket details", publish_socks[socket_name]['port'])
-
         reply(null, {addr: '127.0.0.1', port: publish_socks[socket_name]['port']});
     },
 
@@ -72,16 +70,14 @@ var server = new zerorpc.Server({
             publish_socks[socket_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
 
             console.log("Created sock entry for", socket_name, "on port", port)
-            
-            exchanges_interfaces[exchange].subscribeLevel2Snapshots(instrument);
+            console.log("Subscribing to instrument", instrument)
+            exchanges_interfaces[exchange].subscribeLevel2Updates(instrument);
         }
 
         console.log("Sending back socket details", publish_socks[socket_name]['port'])
-
         reply(null, {addr: '127.0.0.1', port: publish_socks[socket_name]['port']});
     }
 });
 
 console.log("Service ready on 4242");
-
 server.bind("tcp://127.0.0.1:4242");

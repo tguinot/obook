@@ -2,6 +2,7 @@ import zerorpc
 import threading
 import zmq
 import umsgpack
+from pprint import pprint
 import time
 import os
 
@@ -38,8 +39,9 @@ class UniversalFeedListenner(zerorpc.Client):
     def listen(self):
         print("Now listenning...")
         while True:
-            update = umsgpack.loads(self.zmq_socket.recv())
-            print("Received update:", update)
+            update = umsgpack.loads(self.zmq_socket.recv(), raw=False)
+            print("Received update:")
+            pprint(update)
             self.on_receive(update)
             time.sleep(0.002)
     
