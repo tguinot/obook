@@ -21,6 +21,7 @@ class UniversalFeedListenner(zerorpc.Client):
         self.subscribe()
         self.listen_thread  = threading.Thread(target=self.listen, args=())
         self.listen_thread.start()
+        return self.listen_thread
 
     def setup_zmq(self):
         self.context = zmq.Context()
@@ -40,8 +41,6 @@ class UniversalFeedListenner(zerorpc.Client):
         print("Now listenning...")
         while True:
             update = umsgpack.loads(self.zmq_socket.recv(), raw=False)
-            print("Received update:")
-            pprint(update)
             self.on_receive(update)
             time.sleep(0.002)
     

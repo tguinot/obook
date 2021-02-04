@@ -27,15 +27,14 @@ supported_exchanges.forEach(exchange_name =>  {
     });
 
     exchanges_interfaces[exchange_name].on("l2update", ob => {
-        console.log("Received OB update", ob)
+        console.log("Received OB update from", exchange_name, "for", ob.base+ob.quote)
         for (const [sock_name, publish] of Object.entries(publish_socks)) {
             if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {
                 publish_socks[sock_name]['sock'].send(msgpack.pack(ob));
-                break;
-            } else {
-                console.log("Unknown destination for", "orderbook"+ob.exchange+ob.base+ob.quote, "only know", sock_name)
+                return;
             }
         }
+        console.log("Unknown destination for", "orderbook"+ob.exchange+ob.base+ob.quote, "only know", sock_name);
     });
 })
 

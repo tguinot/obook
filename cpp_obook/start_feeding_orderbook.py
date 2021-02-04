@@ -7,47 +7,51 @@ import json
 import time
 import os
 from flask import Flask
+from markets_config import all_markets
 import os
 from orderbook_feeder import OrderbookFeeder
 
 app = Flask(__name__)
+all_feeders = []
 
 
-def generate_shms(exchanges):
+class FeederEntry(object):
+    def __init__(self, market):
+        self.market = market
+        self.exchange = market['exchange']
+        self.shm_name = '/shm' + str(random.random())
+        self.feeder = OrderbookFeeder(self.shm_name, self.exchange, market)
+
+
+def generate_shms(markets):
     shm_names = {}
-    for exchange in exchanges:
-        shm_names[exchange] = '/shm' + str(random.random())
+    for market in markets:
+        exchange = market['exchange']
+        instrument = market['id']
+        shm_names[exchange+instrument] = '/shm' + str(random.random())
     return shm_names
+
 
 @app.route('/shm')
 def hello_world():
-    return json.dumps(shm_names)
+    return json.dumps([feeder_entry.shm_name for feeder_entry in all_feeders])
 
 
 if __name__ == "__main__":
-    market = {
-        "id": "BTC/USD",
-        "base": "BTC",
-        "quote": "USD",
-    }
+    for market in all_markets:
+        all_feeders.append(FeederEntry(market))
 
-    exchanges = ['FTX']
+    def launch_feeder(feeder_entry):
+        print("Launching orderbook feeder for", feeder_entry.exchange, feeder_entry.market)
+        return feeder_entry.feeder.run()
+        
+    feeder_threads = []
 
-    all_feeders = []
+    for feeder_entry in all_feeders:
+        feeder_threads.append(launch_feeder(feeder_entry))
 
-    def launch_feeder(shm_name, exchange, market):
-        feeder = OrderbookFeeder(shm_name, exchange, market)
-        print("Saving orderbook feeder for", exchange, market)
-        all_feeders.append(feeder)
-        feeder.run()
-        while True:
-            time.sleep(2)
-
-    shm_names = generate_shms(exchanges)
-
-    for exchange, shm_name in shm_names.items():
-        p = threading.Thread(target=launch_feeder, args=(shm_name, exchange, market))
-        p.start()
+    for feeder_thread in feeder_threads:
+        feeder_thread.join()
 
     print("Started all orderbooks!")
 
