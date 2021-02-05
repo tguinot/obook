@@ -23,7 +23,7 @@ class OrderbookFeeder(object):
     def display_insert(self, update):
         # self.writer.reset_content()
         bids, asks = update['bids'], update['asks']
-        print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
+        # print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
         for bid in bids:
             # print("Inserting bid from {}: {}@{}".format(update['exchange'], bid['size'], bid['price']))
             quantity, price = Fraction(bid['size']), Fraction(bid['price'])
