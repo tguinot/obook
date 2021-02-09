@@ -12,6 +12,14 @@ This software, written in Python and C++ aims to provide a real-time orderbook f
 
 Requires flask, zerorpc, zeromq, node.js, ccxws
 
+There are different components in this repository:
+1. Orderbook writer: data structure for creating an orderbook SHM and inserting data inside.
+2. Orderbook reader: data structure for reading an orderbook that already exists in SHM.
+3. Orderbook Feeder: Uses an Orderbook Writer and listens to an orderbook updates feed to insert data in orderbook.
+3. Live data service: written in JS, listens to various exchanges in websocket and relays the data to zeroMQ sockets
+4. Orderbook service: Creates Orderbook Feeders, communicates with Live data service and makes Orderbook Feeders to zeroMQ sockets for updates.
+
+
 
 Build instructions:
 
