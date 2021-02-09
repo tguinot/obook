@@ -7,7 +7,7 @@ namespace py = boost::python;
 using namespace boost::interprocess;
 
 void OrderbookReader::init_shm(std::string path){
-  std::cout << "Initiating reader shm" << '\n';
+  // std::cout << "Initiating reader shm" << '\n';
   bids = new SideBook(path + BID_PATH_SUFFIX, read_shm, ZEROVAL);
   asks = new SideBook(path + ASK_PATH_SUFFIX, read_shm, MAXVAL);
 }

@@ -12,7 +12,6 @@ import universal_listenner
 
 class OrderbookFeeder(object):
     def __init__(self, shm, exchange, market):
-        print('SHM path is', str(shm))
         self.writer = RtOrderbookWriter(shm)
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', '4242', exchange, market, 'orderbook', on_receive=self.display_insert)
         print("Starting up Feed Listenner!")

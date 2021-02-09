@@ -15,6 +15,7 @@ from collections import namedtuple
 
 app = Flask(__name__)
 all_feeders = []
+started = False
 
 SHMDetail = namedtuple('SHMDetail', 'exchange instrument shm_path')
 
@@ -22,7 +23,7 @@ class FeederEntry(object):
     def __init__(self, market):
         self.market = market
         self.exchange = market['exchange']
-        self.shm_name = '/shm' + str(random.random())
+        self.shm_name = '/shm_%04x' % random.randrange(16**4)
         self.feeder = OrderbookFeeder(self.shm_name, self.exchange, market)
 
 def generate_shms(markets):
@@ -36,15 +37,17 @@ def generate_shms(markets):
 
 @app.route('/shm')
 def dump_shm_paths():
-    # shms_dico = {str((feeder_entry.exchange, feeder_entry.market['id'])): feeder_entry.shm_name for feeder_entry in all_feeders}
     all_details = [SHMDetail(feeder_entry.exchange, feeder_entry.market['id'], feeder_entry.shm_name) for feeder_entry in all_feeders ]
-    print(umsgpack.dumps(all_details))
     return umsgpack.dumps(all_details)
 
 feeder_threads = []
 
-@app.before_first_request
-def startup():
+@app.route('/start_listenning')
+def star_listenning():
+    global started
+    if started:
+        return umsgpack.dumps("All orderbooks started")
+
     for market in all_markets:
         all_feeders.append(FeederEntry(market))
 
@@ -55,8 +58,6 @@ def startup():
     for feeder_entry in all_feeders:
         feeder_threads.append(launch_feeder(feeder_entry))
 
-    #for feeder_thread in feeder_threads:
-    #    feeder_thread.join()
-
-    return json.dumps("Started all orderbooks!")
+    started = True
+    return umsgpack.dumps("Started all orderbooks!")
 

@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#define SIDEBOOK_SIZE       100
+#define SIDEBOOK_SIZE       200
 #define ZEROVAL             number(0, 1)
 #define MAXVAL              number(2147483645, 1)
 

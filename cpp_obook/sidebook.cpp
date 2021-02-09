@@ -37,15 +37,15 @@ void SideBook::setup_segment(std::string path, shm_mode mode){
 
 SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
     std::string mutex_path = path + "_mutex";
-    std::cout << "Creating upgradable mutex " << mutex_path << std::endl;
+    // std::cout << "Creating upgradable mutex " << mutex_path << std::endl;
     mutex = new named_upgradable_mutex(open_or_create, mutex_path.c_str());
-    std::cout << "Setting up SHM segment " << path << std::endl;
+    // std::cout << "Setting up SHM segment " << path << std::endl;
     setup_segment(path, mode);
-    std::cout << "Constructing SHM object " << path << std::endl;
+    // std::cout << "Constructing SHM object " << path << std::endl;
     data = segment->find_or_construct< sidebook_content > ("unique")();
     default_value = fill_value;
     book_mode = mode;
-    std::cout << "Resetting SHM object " << path << std::endl;
+    // std::cout << "Resetting SHM object " << path << std::endl;
     reset_content();
 }
 
