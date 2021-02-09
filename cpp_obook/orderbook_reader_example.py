@@ -12,7 +12,7 @@ status = umsgpack.loads(requests.get('http://localhost:{}/start_listenning'.form
 print("Orderbook service status:", status)
 
 # Wait for enough exchange data to arrive... 
-time.sleep(1)
+time.sleep(3)
 
 # Then we request to know the location of the data in shared memory so we can open it
 orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
@@ -22,7 +22,7 @@ orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.forma
 for exchange, instrument, shm_path in orderbooks_details:
     reader = RtOrderbookReader(shm_path)
     print(f"\nCreated reader for orderbook {exchange}:{instrument} located at {shm_path}")
-    
+
     print("Top 3 Bids are:")
     pprint(reader.snapshot_bids(3))
 
