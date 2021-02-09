@@ -43,7 +43,7 @@ def dump_shm_paths():
 feeder_threads = []
 
 @app.route('/start_listenning')
-def star_listenning():
+def start_listenning():
     global started
     if started:
         return umsgpack.dumps("All orderbooks started")

@@ -38,7 +38,6 @@ class RtOrderbookReader(orderbook_wrapper.OrderbookReader, CommonOrderBookClass)
 class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter, CommonOrderBookClass):
 	def __init__(self, path):
 		super().__init__()
-		print("Instantiated writer ")
 		self.init_shm(path)
 
 	def snapshot_bids(self, max_limit=10):
