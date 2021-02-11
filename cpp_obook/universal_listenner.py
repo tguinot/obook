@@ -42,5 +42,4 @@ class UniversalFeedListenner(zerorpc.Client):
         while True:
             update = umsgpack.loads(self.zmq_socket.recv(), raw=False)
             self.on_receive(update)
-            time.sleep(0.002)
     

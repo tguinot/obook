@@ -31,11 +31,11 @@ class OrderbookFeeder(object):
             quantity, price = Fraction(ask['size']), Fraction(ask['price'])
             # print("Inserting ask from {}: {}@{}".format(update['exchange'], ask['size'], ask['price']))
             self.writer.set_quantity_at(False, *quantity.as_integer_ratio(), *price.as_integer_ratio())
-        if not self.writer.is_sound():
-            print('Incoherent ORDERBOOK')
-            pprint(self.writer.snapshot_bids(10))
-            pprint(self.writer.snapshot_asks(10))
-            sys.exit()
+        # if not self.writer.is_sound():
+        #     print('Incoherent ORDERBOOK')
+        #     pprint(self.writer.snapshot_bids(10))
+        #     pprint(self.writer.snapshot_asks(10))
+        #     sys.exit()
 
     def reset_orderbook(self):
         self.writer.reset_content()
