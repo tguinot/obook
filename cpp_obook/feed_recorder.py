@@ -55,7 +55,7 @@ class Recorder(UniversalFeedListenner):
     def write_to_disk(self):
         self.saving = True
         with self.messages_sem:
-            log_message = "Saving to file messages of length {}...".format(len(self.messages))
+            log_message = "Saving messages of length {}...".format(len(self.messages))
             loggit(log_message)
             # packed = umsgpack.dumps(self.messages)
             for mes in self.messages:
