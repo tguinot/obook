@@ -5,28 +5,15 @@ import posix_ipc
 from pprint import pprint
 import threading
 import umsgpack
-from peewee import *
 from decimal import Decimal
 from universal_listenner import UniversalFeedListenner
+from models import OrderbookEntryUpdate
 
-db = SqliteDatabase('people.db')
-
-class OrderbookEntryUpdate(Model):
-    side = CharField()
-    base = CharField()
-    quote = CharField()
-    exchange = CharField()
-    timestamp = DateTimeField()
-    price = DecimalField()
-    size = DecimalField()
-
-    class Meta:
-        database = db # This model uses the "people.db" database.
 
 def loggit(*args):
     print("{}: ".format(datetime.datetime.now()), *args)
 
-class Listenner(UniversalFeedListenner):
+class Recorder(UniversalFeedListenner):
     def __init__(self, addr, port, exchange, market, record=False, record_time=10, buffer_length=100, record_path='./'):
         super().__init__(addr, port, exchange, market, 'orderbook', on_receive=self.receive_fn)
         self.saving = False
@@ -97,12 +84,3 @@ class Listenner(UniversalFeedListenner):
             loggit("Finished recording")
 
 
-if __name__ == "__main__":
-    market = {
-        "id": "BTC/USD",
-        "base": "BTC",
-        "quote": "USD",
-    }
-
-    listenner = Listenner('127.0.0.1', '4242', 'FTX', market, record=True, record_time=100000, buffer_length=10, record_path='./')
-    listenner.run()
