@@ -28,7 +28,6 @@ supported_exchanges.forEach(exchange_name =>  {
     });
 
     exchanges_interfaces[exchange_name].on("l2update", ob => {
-        console.log("Received OB update from", exchange_name, "for", ob.base+ob.quote)
         ob.server_received = Date.now()
         for (const [sock_name, publish] of Object.entries(publish_socks)) {
             if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {

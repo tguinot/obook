@@ -1,79 +1,77 @@
 import datetime
-from pony.orm import *
 from orderbook_helper import RtOrderbookReader
 import time
 import sys
 import requests
+import os
+from decimal import Decimal
+from pprint import pprint
+from orderbook_helper import RtOrderbookReader
+import requests
+from models import OrderbookRecord, Currency, Exchange
+import umsgpack
 
-db = Database()
+orderbook_service_port = os.environ.get("ORDERBOOK_SERVICE_PORT")
 
-class OrderbookRecord(db.Entity):
-	id = PrimaryKey(int, auto=True)
-	name = Required(str)
-	exchange = Required(str)
-	side = Required(str)
-	sizes = Optional(FloatArray)
-	prices = Optional(FloatArray)
-	timestamp = Required(datetime.datetime)
+# First we ask the orderbook service to start listenning to orderbook updates and fill itself
+status = umsgpack.loads(requests.get('http://localhost:{}/start_listenning'.format(orderbook_service_port)).content, raw=False)
+print("Orderbook service status:", status)
 
-shm_paths = requests.get('http://localhost:{}/shm'.format(sys.argv[5])).json()
+# Wait for enough exchange data to arrive... 
+# time.sleep(3)
 
+# Then we request to know the location of the data in shared memory so we can open it
+orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
 
-name = sys.argv[1]
-database = sys.argv[2]
-port = sys.argv[3]
-password = sys.argv[4]
-
-sql_debug(True)
-db.bind(provider='postgres', host='localhost', database=database, port=int(port), password=password)
-db.generate_mapping(create_tables=True)
+exchange_name, instrument, shm_path = orderbooks_details[0]
 
 
-shm_name_a, shm_name_b = shm_paths['cexio'], shm_paths['binance']
-exchange_a, exchange_b = 'cexio', 'binance'
+obh_a = RtOrderbookReader(shm_path)
 
-
-obh_a, obh_b = RtOrderbookReader(shm_name_a), RtOrderbookReader(shm_name_b)
+base = Currency.get(Currency.name == 'BTC')
+quote = Currency.get(Currency.name == 'USD')
+exchange = Exchange.get(Exchange.name == 'FTX')
 
 
 def snapshot_orderbook(obh):
 	bids_prices, asks_prices = [], []
 	bids_sizes, asks_sizes = [], []
-	snap = obh.snapshot_bids()
+	snap = obh.snapshot_bids(100)
 	if len(snap) > 0:
 		mini, maxi = snap[-1][0], snap[0][0]
 		for price, size in snap:
-			bids_prices.append(price)
-			bids_sizes.append(size)
-			print("Bid {}@{}".format(size, price))
+			bids_prices.append(Decimal(price))
+			bids_sizes.append(Decimal(size))
+			#print("Bid {}@{}".format(size, price))
 			if price < mini or price > maxi:
 				print("ORDERBOOK BIDS INCOHERENT:", snap)
 
-	snap = obh.snapshot_asks()
+	snap = obh.snapshot_asks(100)
 	if len(snap) > 0:
 		maxi, mini = snap[-1][0], snap[0][0]
 		for price, size in snap:
-			asks_prices.append(price)
-			asks_sizes.append(size)
-			print("Ask {}@{}".format(size, price))
+			asks_prices.append(Decimal(price))
+			asks_sizes.append(Decimal(size))
+			#print("Ask {}@{}".format(size, price))
 			if price < mini or price > maxi:
 				print("ORDERBOOK ASKS INCOHERENT:", snap)
 
 	return bids_sizes, bids_prices, asks_sizes, asks_prices
 
 
-def save_snapshot(name, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts):
-	OrderbookRecord(name=name, exchange=exchange, side='bid', sizes=bids_sizes, prices=bids_prices, timestamp=ts)
-	OrderbookRecord(name=name, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices, timestamp=ts)
+def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts):
+	bid_snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, side='bid', sizes=bids_sizes, prices=bids_prices, timestamp=ts)
+	bid_snap.save()
+	ask_snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices, timestamp=ts)
+	ask_snap.save()
 
 
 while True:
 	ts = datetime.datetime.utcnow()
+	print("Taking snapshot...")
 	bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
-	bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b = snapshot_orderbook(obh_b)
-	with db_session:
-		save_snapshot(name, exchange_a, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
-		save_snapshot(name, exchange_b, bids_sizes_b, bids_prices_b, asks_sizes_b, asks_prices_b, ts)
+	print("Saving snapshot...")
+	save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
 
-	time.sleep(0.5)
+	time.sleep(0.3)
 
