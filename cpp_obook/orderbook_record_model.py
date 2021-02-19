@@ -11,19 +11,25 @@ import requests
 from models import OrderbookRecord, Currency, Exchange
 import umsgpack
 
+
+target_exchange, target_instrument = sys.argv[1], sys.argv[2]
+
 orderbook_service_port = os.environ.get("ORDERBOOK_SERVICE_PORT")
 
 # First we ask the orderbook service to start listenning to orderbook updates and fill itself
 status = umsgpack.loads(requests.get('http://localhost:{}/start_listenning'.format(orderbook_service_port)).content, raw=False)
 print("Orderbook service status:", status)
 
-# Wait for enough exchange data to arrive... 
-# time.sleep(3)
 
 # Then we request to know the location of the data in shared memory so we can open it
 orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
 
-exchange_name, instrument, shm_path = orderbooks_details[0]
+
+for exchange_name_i, instrument_i, shm_path_i in orderbooks_details:
+	if exchange_name_i == target_exchange and instrument_i == target_instrument:
+		exchange_name, instrument, shm_path = exchange_name_i, instrument_i, shm_path_i
+		print(f"Found {target_exchange}:{target_instrument} located at {shm_path}")
+		break
 
 
 obh_a = RtOrderbookReader(shm_path)
@@ -65,13 +71,14 @@ def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, as
 	ask_snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, side='ask', sizes=asks_sizes, prices=asks_prices, timestamp=ts)
 	ask_snap.save()
 
+if __name__ == "__main__":
+	print("Starting taking snapshots...")
 
-while True:
-	ts = datetime.datetime.utcnow()
-	print("Taking snapshot...")
-	bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
-	print("Saving snapshot...")
-	save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
+	while True:
+		ts = datetime.datetime.utcnow()
 
-	time.sleep(0.3)
+		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
+		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
+
+		time.sleep(0.3)
 
