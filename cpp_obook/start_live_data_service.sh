@@ -1,1 +1,0 @@
-nohup node live_data_service.js > live_data_service.out 2>&1 &

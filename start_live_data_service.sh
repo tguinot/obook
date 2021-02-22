@@ -1,0 +1,1 @@
+pm2 start live_data_service.js --time --name "LiveDataService"
