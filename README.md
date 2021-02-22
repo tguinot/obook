@@ -28,3 +28,8 @@ To start the orderbook service (markets are defined in market_config.py):
 To start the orderbook recorder service (markets are defined in the script itself):
 
 `bash start_recording_orderbook.sh`
+
+To visualize the services status:
+`pm2 list`
+
+Refer to pm2 documentation for further details about services management
