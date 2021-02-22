@@ -9,6 +9,13 @@ There are different components in this repository:
 4. **Orderbook service**: Creates Orderbook Feeders, communicates with Live data service and makes Orderbook Feeders to zeroMQ sockets for updates.
 5. **Orderbook recorde**r service: Opens an existing orderbook in SHM and takes snapshots to insert in DB
 
+**Make sure the following variables are defined in ENV**:
+
+export POSTGRES_DB_NAME=xxxxxxx
+export POSTGRES_DB_HOST=xxxxxxx
+export POSTGRES_DB_USER=xxxxxxx
+export POSTGRES_DB_PASSWD=xxxxxxx
+export POSTGRES_DB_PORT=xxxxxxx
 
 To start the live data service:
 
