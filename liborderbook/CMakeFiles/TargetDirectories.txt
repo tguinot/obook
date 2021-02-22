@@ -1,4 +1,0 @@
-/home/quantumlabs/code/obook/liborderbook/CMakeFiles/rebuild_cache.dir
-/home/quantumlabs/code/obook/liborderbook/CMakeFiles/edit_cache.dir
-/home/quantumlabs/code/obook/liborderbook/CMakeFiles/orderbookwrapper.dir
-/home/quantumlabs/code/obook/liborderbook/CMakeFiles/Boost.dir
