@@ -11,11 +11,16 @@ There are different components in this repository:
 
 **Make sure the following variables are defined in ENV**:
 
-export POSTGRES_DB_NAME=xxxxxxx
-export POSTGRES_DB_HOST=xxxxxxx
-export POSTGRES_DB_USER=xxxxxxx
-export POSTGRES_DB_PASSWD=xxxxxxx
-export POSTGRES_DB_PORT=xxxxxxx
+*export POSTGRES_DB_NAME=xxxxxxx*
+
+*export POSTGRES_DB_HOST=xxxxxxx*
+
+*export POSTGRES_DB_USER=xxxxxxx*
+
+*export POSTGRES_DB_PASSWD=xxxxxxx*
+
+*export POSTGRES_DB_PORT=xxxxxxx*
+
 
 To start the live data service:
 
