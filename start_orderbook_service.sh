@@ -1,1 +1,2 @@
-pm2 start "FLASK_APP=start_orderbook_service.py; flask run" --time --name OrderbookService
+export FLASK_APP=start_orderbook_service.py
+pm2 start "flask run" --time --name OrderbookService
