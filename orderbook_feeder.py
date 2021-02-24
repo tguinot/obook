@@ -11,9 +11,9 @@ import universal_listenner
 
 
 class OrderbookFeeder(object):
-    def __init__(self, shm, exchange, market):
+    def __init__(self, stream_port, shm, exchange, market):
         self.writer = RtOrderbookWriter(shm)
-        self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', '4242', exchange, market, 'orderbook', on_receive=self.display_insert)
+        self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
         print("Starting up Feed Listenner!")
     
     def run(self):

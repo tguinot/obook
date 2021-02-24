@@ -3,8 +3,10 @@ var zerorpc = require("zerorpc");
 var zmq = require("zeromq");
 var msgpack = require('msgpack');
 const { Sequelize, DataTypes } = require('sequelize');
+var fs = require('fs');
 
 const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${process.env.POSTGRES_DB_PASSWD}@${process.env.POSTGRES_DB_HOST}:${process.env.POSTGRES_DB_PORT}/${process.env.POSTGRES_DB_NAME}`)
+const markets_config = JSON.parse(fs.readFileSync('markets_config.json', 'utf8'));
 
 const Service = sequelize.define('Service', {
     // Model attributes are defined here
@@ -68,14 +70,48 @@ const Service = sequelize.define('Service', {
             ob.server_received = Date.now()
             for (const [sock_name, publish] of Object.entries(publish_socks)) {
                 if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {
-                    console.log("Sending update for", ob.exchange+ob.base+ob.quote) 
+                    //console.log("Sending update for", ob.exchange+ob.base+ob.quote) 
                     publish_socks[sock_name]['sock'].send(msgpack.pack(ob));
                     return;
                 }
             }
-            console.log("Unknown destination for", "orderbook"+ob.exchange+ob.base+ob.quote, "only know", sock_name);
+            console.log("Unknown destination for", "orderbook"+ob.exchange+ob.base+ob.quote, "among", publish_socks);
         });
     })
+
+
+    async function subscribe_to_orderbook(instrument) {
+        exchange = instrument.exchange
+        publish_name = "orderbook" + exchange+instrument.base+instrument.quote
+        console.log("Starting orderbook subscription for", exchange, instrument)
+        if (!publish_socks.hasOwnProperty(publish_name)) {
+            console.log("Initializing socket", publish_name, 'by looking for', exchange, instrument.id)
+
+            stream_details = await Service.findOne(
+                {
+                    where: {
+                        name: 'OrderbookDataStream',
+                        address: '127.0.0.1',
+                        exchange: exchange,
+                        instrument: instrument.id
+                    }
+                }
+            );
+            port = stream_details.dataValues.port
+            publish_socks[publish_name] = {'sock': zmq.socket("pub"), 'port': port};
+            publish_socks[publish_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
+
+            console.log("Created sock entry for", publish_name, "on port", port)
+            console.log("Subscribing to instrument", instrument)
+            exchanges_interfaces[exchange].subscribeLevel2Updates(instrument);
+        }
+
+    }
+
+    for (const market of markets_config.all_markets) {
+        console.log("Attempting to subscribe to market", market)
+        await subscribe_to_orderbook(market)
+    }
 
     var server = new zerorpc.Server({
         subscribe_trades: function(exchange, instrument, reply) {
@@ -109,36 +145,6 @@ const Service = sequelize.define('Service', {
             })();
         },
 
-        subscribe_orderbook: function(exchange, instrument, reply) {
-            (async () => {
-                socket_name = "orderbook" + exchange+instrument.base+instrument.quote
-                console.log("Received orderbook subscription request for", exchange, instrument)
-                if (!publish_socks.hasOwnProperty(socket_name)) {
-                    console.log("Initializing socket", socket_name)
-                    stream_details = await Service.findOne(
-                        {
-                            where: {
-                            name: 'OrderbookDataStream',
-                            address: '127.0.0.1',
-                            instrument: instrument.id,
-                            exchange: exchange
-                            }
-                        }
-                    );
-                    port = stream_details.dataValues.port
-
-                    publish_socks[socket_name] = {'sock': zmq.socket("pub"), 'port': port};
-                    publish_socks[socket_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
-
-                    console.log("Created sock entry for", socket_name, "on port", port)
-                    console.log("Subscribing to instrument", instrument)
-                    exchanges_interfaces[exchange].subscribeLevel2Updates(instrument);
-                }
-
-                console.log("Sending back socket details", publish_socks[socket_name]['port'])
-                reply(null, {addr: '127.0.0.1', port: publish_socks[socket_name]['port']});
-            })();
-        }
     });
 
     console.log("Service ready on "+own_service.dataValues.port);

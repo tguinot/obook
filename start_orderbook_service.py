@@ -9,8 +9,7 @@ import time
 import umsgpack
 import os
 from flask import Flask
-from liborderbook.markets_config import all_markets
-import os
+from models import Service
 from orderbook_feeder import OrderbookFeeder
 from collections import namedtuple
 
@@ -18,14 +17,18 @@ app = Flask(__name__)
 all_feeders = []
 started = False
 
+with open('markets_config.json', 'r') as f:
+    all_markets = json.load(f)['all_markets']
+
 SHMDetail = namedtuple('SHMDetail', 'exchange instrument shm_path')
 
+
 class FeederEntry(object):
-    def __init__(self, market):
+    def __init__(self, market, stream_port):
         self.market = market
         self.exchange = market['exchange']
         self.shm_name = '/shm_%04x' % random.randrange(16**4)
-        self.feeder = OrderbookFeeder(self.shm_name, self.exchange, market)
+        self.feeder = OrderbookFeeder(stream_port, self.shm_name, self.exchange, market)
 
 def generate_shms(markets):
     shm_names = {}
@@ -43,22 +46,25 @@ def dump_shm_paths():
 
 feeder_threads = []
 
+for market in all_markets:
+    stream = Service.get((Service.exchange == market['exchange']) & (Service.instrument == market['id']))
+    print("Fetched stream port", stream.port, "for", market)
+    all_feeders.append(FeederEntry(market, stream.port))
+
+def launch_feeder(feeder_entry):
+    print("Launching orderbook feeder for", feeder_entry.exchange, feeder_entry.market)
+    return feeder_entry.feeder.run()
+
+for feeder_entry in all_feeders:
+    feeder_threads.append(launch_feeder(feeder_entry))
+
+started = True
+
 @app.route('/start_listenning')
 def start_listenning():
     global started
     if started:
         return umsgpack.dumps("All orderbooks started")
 
-    for market in all_markets:
-        all_feeders.append(FeederEntry(market))
-
-    def launch_feeder(feeder_entry):
-        print("Launching orderbook feeder for", feeder_entry.exchange, feeder_entry.market)
-        return feeder_entry.feeder.run()
-
-    for feeder_entry in all_feeders:
-        feeder_threads.append(launch_feeder(feeder_entry))
-
-    started = True
-    return umsgpack.dumps("Started all orderbooks!")
+    return umsgpack.dumps("Orderbooks not started")
 
