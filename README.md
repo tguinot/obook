@@ -26,7 +26,7 @@ To start the live data service:
 
 `bash start_live_data_service.sh`
 
-To start the orderbook service (markets are defined in market_config.py):
+To start the orderbook service (markets are defined in market_config.json):
 
 `bash start_orderbook_service.sh`
 
