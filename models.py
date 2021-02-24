@@ -17,6 +17,7 @@ class Exchange(Model):
     class Meta:
         database = db
 
+
 class Service(Model):
     address = CharField(null=True)
     exchange = CharField(null=True)
@@ -27,6 +28,7 @@ class Service(Model):
     class Meta:
         table_name = 'service'
         database = db
+
 
 class Currency(Model):
     name = CharField(unique=True)

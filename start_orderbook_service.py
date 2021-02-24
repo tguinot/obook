@@ -36,6 +36,7 @@ def generate_shms(markets):
         exchange = market['exchange']
         instrument = market['id']
         shm_names[exchange+instrument] = '/shm' + str(random.random())
+        print(f"Generated shm for {exchange+instrument} at {shm_names[exchange+instrument]}")
     return shm_names
 
 

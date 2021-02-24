@@ -13,6 +13,8 @@ import universal_listenner
 class OrderbookFeeder(object):
     def __init__(self, stream_port, shm, exchange, market):
         self.writer = RtOrderbookWriter(shm)
+        self.shm = shm
+        self.exchange = exchange
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
         print("Starting up Feed Listenner!")
     
@@ -20,16 +22,18 @@ class OrderbookFeeder(object):
         return self.lstr.run()
 
     def display_insert(self, update):
-        # self.writer.reset_content()
         bids, asks = update['bids'], update['asks']
-        # print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
+        if self.exchange == 'Binance':
+            self.writer.reset_content()
+            #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
+            #pprint(update)
         for bid in bids:
-            # print("Inserting bid from {}: {}@{}".format(update['exchange'], bid['size'], bid['price']))
+            # print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
             quantity, price = Fraction(bid['size']), Fraction(bid['price'])
             self.writer.set_quantity_at(True, *quantity.as_integer_ratio(), *price.as_integer_ratio())
         for ask in asks:
             quantity, price = Fraction(ask['size']), Fraction(ask['price'])
-            # print("Inserting ask from {}: {}@{}".format(update['exchange'], ask['size'], ask['price']))
+            # print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
             self.writer.set_quantity_at(False, *quantity.as_integer_ratio(), *price.as_integer_ratio())
         # if not self.writer.is_sound():
         #     print('Incoherent ORDERBOOK')
@@ -39,3 +43,4 @@ class OrderbookFeeder(object):
 
     def reset_orderbook(self):
         self.writer.reset_content()
+        
