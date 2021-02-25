@@ -5,7 +5,14 @@ var msgpack = require('msgpack');
 const { Sequelize, DataTypes } = require('sequelize');
 var fs = require('fs');
 
-const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${process.env.POSTGRES_DB_PASSWD}@${process.env.POSTGRES_DB_HOST}:${process.env.POSTGRES_DB_PORT}/${process.env.POSTGRES_DB_NAME}`)
+const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${process.env.POSTGRES_DB_PASSWD}@${process.env.POSTGRES_DB_HOST}:${process.env.POSTGRES_DB_PORT}/${process.env.POSTGRES_DB_NAME}`, {
+    dialect: 'postgres',
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    }})
 const markets_config = JSON.parse(fs.readFileSync('markets_config.json', 'utf8'));
 
 const Service = sequelize.define('Service', {
