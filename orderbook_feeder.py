@@ -29,12 +29,10 @@ class OrderbookFeeder(object):
             #pprint(update)
         for bid in bids:
             # print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
-            quantity, price = Fraction(bid['size']), Fraction(bid['price'])
-            self.writer.set_quantity_at(True, *quantity.as_integer_ratio(), *price.as_integer_ratio())
+            self.writer.set_bid_quantity_at(bid['size'], bid['price'])
         for ask in asks:
-            quantity, price = Fraction(ask['size']), Fraction(ask['price'])
             # print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
-            self.writer.set_quantity_at(False, *quantity.as_integer_ratio(), *price.as_integer_ratio())
+            self.writer.set_ask_quantity_at(ask['size'], ask['price'])
         # if not self.writer.is_sound():
         #     print('Incoherent ORDERBOOK')
         #     pprint(self.writer.snapshot_bids(10))

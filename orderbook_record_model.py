@@ -44,25 +44,24 @@ exchange = Exchange.get(Exchange.name == 'FTX')
 def snapshot_orderbook(obh):
 	bids_prices, asks_prices = [], []
 	bids_sizes, asks_sizes = [], []
-	snap = obh.snapshot_bids(100)
-	if len(snap) > 0:
-		mini, maxi = snap[-1][0], snap[0][0]
-		for price, size in snap:
-			bids_prices.append(Decimal(price))
-			bids_sizes.append(Decimal(size))
+	bids, asks = obh.snapshot_whole(100)
+
+	if len(bids) > 0:
+		mini, maxi = bids[-1][0], bids[0][0]
+		for price, size in bids:
+			bids_prices.append(price)
+			bids_sizes.append(size)
 			#print("Bid {}@{}".format(size, price))
 			if price < mini or price > maxi:
-				print("ORDERBOOK BIDS INCOHERENT:", snap)
-
-	snap = obh.snapshot_asks(100)
-	if len(snap) > 0:
-		maxi, mini = snap[-1][0], snap[0][0]
-		for price, size in snap:
-			asks_prices.append(Decimal(price))
-			asks_sizes.append(Decimal(size))
+				print("ORDERBOOK BIDS INCOHERENT:", bids)
+	if len(asks) > 0:
+		maxi, mini = asks[-1][0], asks[0][0]
+		for price, size in asks:
+			asks_prices.append(price)
+			asks_sizes.append(size)
 			#print("Ask {}@{}".format(size, price))
 			if price < mini or price > maxi:
-				print("ORDERBOOK ASKS INCOHERENT:", snap)
+				print("ORDERBOOK ASKS INCOHERENT:", asks)
 
 	return bids_sizes, bids_prices, asks_sizes, asks_prices
 
@@ -79,7 +78,7 @@ if __name__ == "__main__":
 	while True:
 		ts = datetime.datetime.utcnow()
 
-		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
+		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = obh_a.snapshot_orderbook(obh_a)
 		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
 
 		time.sleep(0.3)

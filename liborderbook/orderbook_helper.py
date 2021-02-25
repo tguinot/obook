@@ -1,5 +1,6 @@
 from . import orderbook_wrapper
 from fractions import Fraction
+from decimal import Decimal
 import random
 
 
@@ -16,6 +17,11 @@ class CommonOrderBookClass:
 			return False
 		return True
 
+def dec(n, d):
+	return Decimal(n) / Decimal(d)
+
+
+
 
 class RtOrderbookReader(orderbook_wrapper.OrderbookReader, CommonOrderBookClass):
 	def __init__(self, path):
@@ -24,15 +30,29 @@ class RtOrderbookReader(orderbook_wrapper.OrderbookReader, CommonOrderBookClass)
 
 	def snapshot_bids(self, max_limit=10):
 		raw_result = super().snapshot_bids(max_limit)
-		return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
+		return [(dec(*price), dec(*qty)) for price, qty in raw_result]
 
 	def snapshot_asks(self, max_limit=10):
 		raw_result = super().snapshot_asks(max_limit)
-		return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
+		return [(dec(*price), dec(*qty)) for price, qty in raw_result]
+
+	def snapshot_whole(self, max_limit=10):
+		frac_bids, frac_asks = super().snapshot_whole(max_limit)
+		def frac_sidebook_to_decimals(sidebook):
+			result = []
+			for entry in sidebook:
+				frac_price, frac_qty = entry
+				price, qty = dec(*frac_price), dec(*frac_qty)
+				result.append([price, qty])
+			return result
+
+		bids = frac_sidebook_to_decimals(frac_bids)
+		asks = frac_sidebook_to_decimals(frac_asks)
+		return bids, asks
 
 	def first_price(self, side):
 		price = super().first_price(side)
-		return float(Fraction(*price))
+		return dec(*price)
 
 	
 class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter, CommonOrderBookClass):
@@ -42,18 +62,32 @@ class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter, CommonOrderBookClass)
 
 	def snapshot_bids(self, max_limit=10):
 		raw_result = super().snapshot_bids(max_limit)
-		return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
+		return [(dec(*price), dec(*qty)) for price, qty in raw_result]
 
 	def snapshot_asks(self, max_limit=10):
 		raw_result = super().snapshot_asks(max_limit)
-		return [(float(Fraction(*price)), float(Fraction(*qty))) for price, qty in raw_result]
+		return [(dec(*price), dec(*qty)) for price, qty in raw_result]
 
-	def set_bid_quantity_at(self, price, quantity):
-		frac_price = Fraction.from_float(price)
-		frac_quantity = Fraction.from_float(quantity)
+	def snapshot_whole(self, max_limit=10):
+		frac_bids, frac_asks = super().snapshot_whole(max_limit)
+		def frac_sidebook_to_decimals(sidebook):
+			result = []
+			for entry in sidebook:
+				frac_price, frac_qty = entry
+				price, qty = dec(*frac_price), dec(*frac_qty)
+				result.append([price, qty])
+			return result
+
+		bids = frac_sidebook_to_decimals(frac_bids)
+		asks = frac_sidebook_to_decimals(frac_asks)
+		return bids, asks
+
+	def set_bid_quantity_at(self, quantity, price):
+		frac_price = Fraction(price)
+		frac_quantity = Fraction(quantity)
 		return super().set_quantity_at(True, frac_quantity.numerator, frac_quantity.denominator, frac_price.numerator, frac_price.denominator)
 
-	def set_ask_quantity_at(self, price, quantity):
-		frac_price = Fraction.from_float(price)
-		frac_quantity = Fraction.from_float(quantity)
+	def set_ask_quantity_at(self, quantity, price):
+		frac_price = Fraction(price)
+		frac_quantity = Fraction(quantity)
 		return super().set_quantity_at(False, frac_quantity.numerator, frac_quantity.denominator, frac_price.numerator, frac_price.denominator)

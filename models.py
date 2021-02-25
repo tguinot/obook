@@ -7,7 +7,7 @@ from pprint import pprint
 from playhouse.postgres_ext import *
 
 # db = SqliteDatabase('qlabs_trading.db')
-db = PostgresqlExtDatabase(os.environ.get('POSTGRES_DB_NAME'), user=os.environ.get('POSTGRES_DB_USER'), host=os.environ.get('POSTGRES_DB_HOST'), password=os.environ.get('POSTGRES_DB_PASSWD'))
+db = PostgresqlExtDatabase(os.environ.get('POSTGRES_DB_NAME'), user=os.environ.get('POSTGRES_DB_USER'), host=os.environ.get('POSTGRES_DB_HOST'), password=os.environ.get('POSTGRES_DB_PASSWD'), port=os.environ.get('POSTGRES_DB_PORT'), sslmode='require')
 
 
 class Exchange(Model):
@@ -43,7 +43,7 @@ class OrderbookRecord(Model):
     base = ForeignKeyField(Currency)
     quote = ForeignKeyField(Currency)
     side =  BooleanField()
-    sizes = ArrayField(DecimalField)
+    sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
     prices = ArrayField(DecimalField)
     exchange = ForeignKeyField(Exchange)
     timestamp = DateTimeField()
@@ -70,11 +70,11 @@ db.connect()
 db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 
 
-#orderbook_service_d = Service(name='LiveDataService', port=4242, address='127.0.0.1', instrument='ALL', exchange='ALL')
-#orderbook_service_d.save()
+# orderbook_service_d = Service(name='LiveDataService', port=4242, address='127.0.0.1', instrument='ALL', exchange='ALL')
+# orderbook_service_d.save()
 
-#orderbook_service_e = Service(name='OrderbookDataStream', port=5090, address='127.0.0.1', instrument='BTC/USD', exchange='FTX')
-#orderbook_service_e.save()
+# orderbook_service_e = Service(name='OrderbookDataStream', port=5090, address='127.0.0.1', instrument='BTC/USD', exchange='FTX')
+# orderbook_service_e.save()
 # orderbook_service_f = Service(name='OrderbookDataStream', port=5091, address='127.0.0.1', instrument='ETH/USD', exchange='FTX')
 # orderbook_service_f.save()
 # orderbook_service_g = Service(name='OrderbookDataStream', port=5092, address='127.0.0.1', instrument='BTCUSDT', exchange='Binance')
@@ -83,10 +83,13 @@ db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 # orderbook_service_h.save()
 
 
-#orderbook_service_i = Service(name='OrderbookService', port=5000, address='127.0.0.1', instrument='ALL', exchange='ALL')
-#orderbook_service_i.save()
+# orderbook_service_i = Service(name='OrderbookService', port=5000, address='127.0.0.1', instrument='ALL', exchange='ALL')
+# orderbook_service_i.save()
 
 # ftx = Exchange(name="FTX")
+# ftx.save()
+
+# ftx = Exchange(name="Binance")
 # ftx.save()
 
 # usd = Currency(name="USD")
