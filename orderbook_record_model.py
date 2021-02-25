@@ -78,7 +78,7 @@ if __name__ == "__main__":
 	while True:
 		ts = datetime.datetime.utcnow()
 
-		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = obh_a.snapshot_orderbook(obh_a)
+		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
 		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
 
 		time.sleep(0.3)
