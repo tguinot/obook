@@ -44,7 +44,7 @@ class OrderbookRecord(Model):
     quote = ForeignKeyField(Currency)
     side =  BooleanField()
     sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
-    prices = ArrayField(DecimalField)
+    prices = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
     exchange = ForeignKeyField(Exchange)
     timestamp = DateTimeField()
 
