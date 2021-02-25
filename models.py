@@ -42,9 +42,10 @@ class OrderbookRecord(Model):
     id = AutoField()
     base = ForeignKeyField(Currency)
     quote = ForeignKeyField(Currency)
-    side =  BooleanField()
-    sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
-    prices = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
+    bid_sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
+    bid_prices = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
+    ask_sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
+    ask_prices = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 9, "auto_round": True})
     exchange = ForeignKeyField(Exchange)
     timestamp = DateTimeField()
 
@@ -91,6 +92,9 @@ db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 
 # ftx = Exchange(name="Binance")
 # ftx.save()
+
+#binanceus = Exchange(name="BinanceUs")
+#binanceus.save()
 
 #usd = Currency(name="USD")
 #usd.save()
