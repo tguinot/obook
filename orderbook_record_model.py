@@ -68,8 +68,12 @@ def snapshot_orderbook(obh):
 
 def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts):
 	bid_snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, side=True, sizes=bids_sizes, prices=bids_prices, timestamp=ts)
+	#print("Saving bid")
+	#print(bid_snap.sizes, bid_snap.side)
 	bid_snap.save()
 	ask_snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, side=False, sizes=asks_sizes, prices=asks_prices, timestamp=ts)
+	#print("Saving ask")
+	#print(ask_snap.sizes, ask_snap.side)
 	ask_snap.save()
 
 if __name__ == "__main__":
