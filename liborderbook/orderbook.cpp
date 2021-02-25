@@ -15,6 +15,7 @@ void OrderbookReader::init_shm(std::string path){
 std::pair<number**, int> OrderbookReader::_side_up_to_volume_(SideBook *sb, number target_volume) {
  number** result = new number*[100];
  int i = 0;
+ sharable_lock<named_upgradable_mutex> lock(*(sb->mutex));
  for (sidebook_ascender it=sb->begin(); it!=sb->end(); ++it){
     if (price(it) == ZEROVAL)
       break;

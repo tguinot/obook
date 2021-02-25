@@ -13,6 +13,7 @@ BOOST_PYTHON_MODULE(orderbook_wrapper)
         .def("asks_up_to_volume", &OrderbookReader::py_asks_up_to_volume)
         .def("snapshot_bids", &OrderbookReader::py_snapshot_bids)
         .def("snapshot_asks", &OrderbookReader::py_snapshot_asks)
+        .def("snapshot_whole", &OrderbookReader::py_snapshot_whole)
         .def("first_price", &OrderbookReader::py_first_price);
 
     class_< OrderbookWriter >("OrderbookWriter")
@@ -22,6 +23,7 @@ BOOST_PYTHON_MODULE(orderbook_wrapper)
         .def("asks_up_to_volume", &OrderbookReader::py_asks_up_to_volume)
         .def("snapshot_bids", &OrderbookReader::py_snapshot_bids)
         .def("snapshot_asks", &OrderbookReader::py_snapshot_asks)
+        .def("snapshot_whole", &OrderbookReader::py_snapshot_whole)
         .def("first_price", &OrderbookReader::py_first_price)
         .def("set_quantity_at", &OrderbookWriter::py_set_quantity_at);
 }

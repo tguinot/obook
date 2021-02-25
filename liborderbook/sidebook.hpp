@@ -59,13 +59,18 @@ class SideBook {
 	public:
         SideBook(std::string, shm_mode, number);
 
-
         named_upgradable_mutex *mutex;
+        
         number** snapshot_to_limit(int);
+        number** extract_to_limit(int);
+        number** side_up_to_volume(number);
+
         boost::python::list py_snapshot_to_limit(int);
+        boost::python::list py_extract_to_limit(int);
 
         void insert_ask(number, number);
         void insert_bid(number, number);
+        
         void reset_content();
 
         number get_default_value() {
