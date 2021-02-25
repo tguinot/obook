@@ -36,9 +36,9 @@ for exchange_name_i, instrument_i, shm_path_i in orderbooks_details:
 
 obh_a = RtOrderbookReader(shm_path)
 
-base = Currency.get(Currency.name == 'BTC')
-quote = Currency.get(Currency.name == 'USD')
-exchange = Exchange.get(Exchange.name == 'FTX')
+base = Currency.get(Currency.name == target_instrument[:3])
+quote = Currency.get(Currency.name == target_instrument[3:].split('/')[-1])
+exchange = Exchange.get(Exchange.name == target_exchange)
 
 
 def snapshot_orderbook(obh):

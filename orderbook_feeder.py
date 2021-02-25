@@ -8,6 +8,7 @@ import time
 import os
 import os
 import universal_listenner
+import threading
 
 
 class OrderbookFeeder(object):
@@ -15,6 +16,7 @@ class OrderbookFeeder(object):
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
         self.exchange = exchange
+        self.lock = threading.Lock()
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
         print("Starting up Feed Listenner!")
     
@@ -23,16 +25,20 @@ class OrderbookFeeder(object):
 
     def display_insert(self, update):
         bids, asks = update['bids'], update['asks']
-        if self.exchange == 'Binance':
-            self.writer.reset_content()
-            #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
-            #pprint(update)
-        for bid in bids:
-            # print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
-            self.writer.set_bid_quantity_at(bid['size'], bid['price'])
-        for ask in asks:
-            # print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
-            self.writer.set_ask_quantity_at(ask['size'], ask['price'])
+        self.lock.acquire()
+        try:
+            if self.exchange == 'Binance':
+                self.writer.reset_content()
+                #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
+                #pprint(update)
+            for bid in bids:
+                #print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
+                self.writer.set_bid_quantity_at(bid['size'], bid['price'])
+            for ask in asks:
+                #print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
+                self.writer.set_ask_quantity_at(ask['size'], ask['price'])
+        finally:
+            self.lock.release()
         # if not self.writer.is_sound():
         #     print('Incoherent ORDERBOOK')
         #     pprint(self.writer.snapshot_bids(10))
