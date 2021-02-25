@@ -92,11 +92,17 @@ db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 # ftx = Exchange(name="Binance")
 # ftx.save()
 
-# usd = Currency(name="USD")
-# usd.save()
+#usd = Currency(name="USD")
+#usd.save()
+
+#usdt = Currency(name="USDT")
+#usdt.save()
 
 # btc = Currency(name="BTC")
 # btc.save()
+
+#eth = Currency(name="ETH")
+#eth.save()
 
 # timestamp = datetime.datetime.now()
 # record = OrderbookRecord(base=btc, quote=usd, exchange=ftx, side=True, timestamp=timestamp, prices=[Decimal("50001.34"), Decimal("50004.54")], sizes=[Decimal("1.42"), Decimal("0.98")])
