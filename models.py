@@ -93,7 +93,7 @@ db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 # ftx = Exchange(name="Binance")
 # ftx.save()
 
-#binanceus = Exchange(name="BinanceUs")
+#binanceus = Exchange(name="BinanceUS")
 #binanceus.save()
 
 #usd = Currency(name="USD")

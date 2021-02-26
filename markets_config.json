@@ -1,13 +1,13 @@
 {   
     "all_markets" : [
         {
-            "exchange": "BinanceUs",
+            "exchange": "BinanceUS",
             "id": "BTCUSDT",
             "base": "BTC",
             "quote": "USDT"
         },
         {
-            "exchange": "BinanceUs",
+            "exchange": "BinanceUS",
             "id": "ETHUSDT",
             "base": "ETH",
             "quote": "USDT"

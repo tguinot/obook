@@ -48,12 +48,12 @@ const Service = sequelize.define('Service', {
           }
     );
 
-    const supported_exchanges = ['BinanceUs', 'FTX', 'Kraken'];
+    const supported_exchanges = ['BinanceUS', 'FTX', 'Kraken'];
 
     var publish_socks = {}
 
     const exchanges_interfaces = {
-        'BinanceUs':  new ccxws.BinanceUs(),
+        'BinanceUS':  new ccxws.BinanceUs(),
         'FTX':      new ccxws.Ftx(),
         'Kraken':   new ccxws.Kraken(),
     }

@@ -18,7 +18,7 @@ class OrderbookFeeder(object):
         self.exchange = exchange
         self.lock = threading.Lock()
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
-        print("Starting up Feed Listenner!")
+        print(f"Starting up Feed Listenner for {exchange} {market['id']}")
     
     def run(self):
         return self.lstr.run()
@@ -27,7 +27,7 @@ class OrderbookFeeder(object):
         bids, asks = update['bids'], update['asks']
         self.lock.acquire()
         try:
-            if self.exchange == 'Binance':
+            if 'Binance' == self.exchange:
                 self.writer.reset_content()
                 #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
                 #pprint(update)
