@@ -143,6 +143,8 @@ const Service = sequelize.define('Service', {
                     publish_socks[socket_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
 
                     console.log("Created sock entry for", socket_name, "on port", port)
+
+                    publish_socks[socket_name]['sock'].send(msgpack.pack({server_received: -1, exchange: exchange, base: instrument.base, quote: instrument.quote}));
                     
                     exchanges_interfaces[exchange].subscribeTrades(instrument);
                 }
