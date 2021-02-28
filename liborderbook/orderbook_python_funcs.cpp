@@ -1,5 +1,8 @@
 #include "orderbook.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
+
+using namespace boost::posix_time;
 namespace py = boost::python;
 
 py::list OrderbookReader::_py_side_up_to_volume_(SideBook *sb, number target_volume) {
@@ -42,11 +45,29 @@ py::list OrderbookReader::py_snapshot_asks(int limit) {
 }
 
 py::tuple OrderbookReader::py_snapshot_whole(int limit) {
-  sharable_lock<named_upgradable_mutex> bids_lock(*(bids->mutex));
-  sharable_lock<named_upgradable_mutex> asks_lock(*(asks->mutex));
+  time_duration delay = seconds(3);
+  ptime locktime(second_clock::local_time());
+  locktime = locktime + delay;
 
-  py::list snapped_bids = bids->py_snapshot_to_limit(limit);
-  py::list snapped_asks = asks->py_snapshot_to_limit(limit);
+  py::list snapped_bids; 
+  py::list snapped_asks;
+  
+  bool acquired_bids = bids->mutex->timed_lock_sharable(locktime);
+  if (acquired_bids) {
+    snapped_bids = bids->py_snapshot_to_limit(limit);
+  }
+
+  bool acquired_asks = asks->mutex->timed_lock_sharable(locktime);
+  if (acquired_asks) {
+    snapped_asks = asks->py_snapshot_to_limit(limit);
+  }
+
+  if (acquired_bids) {
+    bids->mutex->unlock_sharable();
+  }
+  if (acquired_asks) {
+    asks->mutex->unlock_sharable();
+  }
   return py::make_tuple(snapped_bids, snapped_asks);
 }
 
