@@ -15,13 +15,15 @@ class UniversalFeedListenner():
         self.stream_addr = stream_addr
         self.stream_port = stream_port
         self.on_receive = on_receive
+        self.running = True
         self.setup_zmq()
 
     def run(self):
         self.subscribe()
-        self.listen_thread  = threading.Thread(target=self.listen, args=())
-        self.listen_thread.start()
-        return self.listen_thread
+        self.listen()
+
+    def stop(self):
+        self.running = False
 
     def setup_zmq(self):
         self.context = zmq.Context()
@@ -39,7 +41,8 @@ class UniversalFeedListenner():
 
     def listen(self):
         print("Now listenning...")
-        while True:
+        while self.running:
             update = umsgpack.loads(self.zmq_socket.recv(), raw=False)
             self.on_receive(update)
+        print("Listenner stopping")
     

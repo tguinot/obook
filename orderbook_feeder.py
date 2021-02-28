@@ -15,6 +15,7 @@ class OrderbookFeeder(object):
     def __init__(self, stream_port, shm, exchange, market):
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
+        self.queue = []
         self.exchange = exchange
         self.lock = threading.Lock()
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
@@ -23,8 +24,22 @@ class OrderbookFeeder(object):
     def run(self):
         return self.lstr.run()
 
+    def stop(self):
+        self.lstr.stop()
+
+    def queue_update(self, update):
+        if update['server_received'] == -1:
+            self.insert_in = 10
+            self.writer.reset_content()
+        elif self.insert_in > 0:
+            self.insert_in -= 1
+        self.queue.append(update)
+
+
     def display_insert(self, update):
         bids, asks = update['bids'], update['asks']
+        # reset_content
+        # start caching for a couple seconds
         self.lock.acquire()
         try:
             if 'Binance' == self.exchange:
