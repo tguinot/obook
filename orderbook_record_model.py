@@ -17,12 +17,6 @@ orderbook_service_details = Service.get((Service.name == 'OrderbookService') & (
 #orderbook_service_port = os.environ.get("ORDERBOOK_SERVICE_PORT")
 orderbook_service_port = orderbook_service_details.port
 
-# First we ask the orderbook service to start listenning to orderbook updates and fill itself
-print("Requesting orderbook service at:", 'http://localhost:{}/start_listenning'.format(orderbook_service_port))
-status = umsgpack.loads(requests.get('http://localhost:{}/start_listenning'.format(orderbook_service_port)).content, raw=False)
-print("Orderbook service status:", status)
-
-
 # Then we request to know the location of the data in shared memory so we can open it
 orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
 

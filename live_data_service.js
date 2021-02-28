@@ -4,6 +4,7 @@ var zmq = require("zeromq");
 var msgpack = require('msgpack');
 const { Sequelize, DataTypes } = require('sequelize');
 var fs = require('fs');
+const { Level2Update } = require("ccxws");
 
 const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${process.env.POSTGRES_DB_PASSWD}@${process.env.POSTGRES_DB_HOST}:${process.env.POSTGRES_DB_PORT}/${process.env.POSTGRES_DB_NAME}`, {
     dialect: 'postgres',
@@ -77,7 +78,12 @@ const Service = sequelize.define('Service', {
             ob.server_received = Date.now()
             for (const [sock_name, publish] of Object.entries(publish_socks)) {
                 if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {
-                    //console.log("Sending update for", ob.exchange+ob.base+ob.quote) 
+                    //console.log("Sending update for", sock_name, ob) 
+                    if (publish_socks[sock_name]['sock'].warned_reset == false) {
+                        reset_msg = {server_received: -1, exchange: ob.exchange, base: ob.base, quote: ob.quote, bids: [], asks: []};
+                        publish_socks[sock_name]['sock'].send(msgpack.pack(reset_msg));
+                        publish_socks[sock_name]['sock'].warned_reset = true;
+                    }
                     publish_socks[sock_name]['sock'].send(msgpack.pack(ob));
                     return;
                 }
@@ -104,12 +110,13 @@ const Service = sequelize.define('Service', {
                     }
                 }
             );
-            port = stream_details.dataValues.port
+            port = stream_details.dataValues.port;
             publish_socks[publish_name] = {'sock': zmq.socket("pub"), 'port': port};
             publish_socks[publish_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
 
-            console.log("Created sock entry for", publish_name, "on port", port)
-            console.log("Subscribing to instrument", instrument)
+            console.log("Created sock entry for", publish_name, "on port", port);
+            console.log("Subscribing to instrument", instrument);
+            publish_socks[publish_name]['sock'].warned_reset = false;
             exchanges_interfaces[exchange].subscribeLevel2Updates(instrument);
         }
 
@@ -142,10 +149,7 @@ const Service = sequelize.define('Service', {
                     publish_socks[socket_name] = {'sock': zmq.socket("pub"), 'port': port};
                     publish_socks[socket_name]['sock'].bindSync("tcp://127.0.0.1:" + port);
 
-                    console.log("Created sock entry for", socket_name, "on port", port)
-
-                    publish_socks[socket_name]['sock'].send(msgpack.pack({server_received: -1, exchange: exchange, base: instrument.base, quote: instrument.quote}));
-                    
+                    console.log("Created trades sock entry for", socket_name, "on port", port )
                     exchanges_interfaces[exchange].subscribeTrades(instrument);
                 }
 

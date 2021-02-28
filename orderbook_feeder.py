@@ -38,14 +38,12 @@ class OrderbookFeeder(object):
 
     def display_insert(self, update):
         bids, asks = update['bids'], update['asks']
-        # reset_content
         # start caching for a couple seconds
         self.lock.acquire()
         try:
             if 'Binance' == self.exchange or update['server_received'] == -1:
+                print("Resetting content of Orderbook",update["exchange"], "for", update["base"]+update["quote"])
                 self.writer.reset_content()
-                #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
-                #pprint(update)
             for bid in bids:
                 #print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
                 self.writer.set_bid_quantity_at(bid['size'], bid['price'])
