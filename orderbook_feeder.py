@@ -42,7 +42,7 @@ class OrderbookFeeder(object):
         # start caching for a couple seconds
         self.lock.acquire()
         try:
-            if 'Binance' == self.exchange:
+            if 'Binance' == self.exchange or update['server_received'] == -1:
                 self.writer.reset_content()
                 #print("Inserting update from", update["exchange"], "for", update["base"]+update["quote"])
                 #pprint(update)
