@@ -2,15 +2,15 @@
     "all_markets" : [
         {
             "exchange": "BinanceUS",
-            "id": "BTCUSDT",
+            "id": "BTCUSD",
             "base": "BTC",
-            "quote": "USDT"
+            "quote": "USD"
         },
         {
             "exchange": "BinanceUS",
-            "id": "ETHUSDT",
+            "id": "ETHUSD",
             "base": "ETH",
-            "quote": "USDT"
+            "quote": "USD"
         },
         {
             "exchange": "FTX",

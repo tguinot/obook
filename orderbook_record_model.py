@@ -14,7 +14,6 @@ import umsgpack
 target_exchange, target_instrument = sys.argv[1], sys.argv[2]
 
 orderbook_service_details = Service.get((Service.name == 'OrderbookService') & (Service.address == '127.0.0.1'))
-#orderbook_service_port = os.environ.get("ORDERBOOK_SERVICE_PORT")
 orderbook_service_port = orderbook_service_details.port
 
 # Then we request to know the location of the data in shared memory so we can open it
@@ -62,10 +61,6 @@ def snapshot_orderbook(obh):
 
 def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts):
 	snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, ask_sizes=asks_sizes, ask_prices=asks_prices, bid_sizes=bids_sizes, bid_prices=bids_prices, timestamp=ts)
-	#print("Saving bid")
-	#print(bid_snap.sizes, bid_snap.side)
-	#print("Saving ask")
-	#print(ask_snap.sizes, ask_snap.side)
 	snap.save()
 
 if __name__ == "__main__":

@@ -2,7 +2,10 @@
 #include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <algorithm>
+
+using namespace boost::posix_time;
 
 number quantity(sidebook_content::iterator loc) {
     return (*loc)[1];
@@ -108,15 +111,31 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {
-    scoped_lock<named_upgradable_mutex> lock(*mutex);
+    time_duration delay = seconds(3);
+    ptime locktime(second_clock::local_time());
+
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
-    insert_at_place(data, to_insert, loc);
+    bool acquired = mutex->timed_lock_upgradable(locktime);
+    if (acquired) {
+        sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
+        insert_at_place(data, to_insert, loc);
+        mutex->unlock_upgradable();
+    } else {
+        throw "Unable to acquire asks memory!";
+    }
 }
 
 void SideBook::insert_bid(number new_price, number new_quantity) {
-    scoped_lock<named_upgradable_mutex> lock(*mutex);
+    time_duration delay = seconds(3);
+    ptime locktime(second_clock::local_time());
+
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
-    insert_at_place(data, to_insert, loc);
+    bool acquired = mutex->timed_lock_upgradable(locktime);
+    if (acquired) {
+        sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
+        insert_at_place(data, to_insert, loc);
+        mutex->unlock_upgradable();
+    } else {
+        throw "Unable to acquire bids memory!";
+    }
 }

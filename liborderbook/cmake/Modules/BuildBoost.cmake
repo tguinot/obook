@@ -33,7 +33,7 @@ set(Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/extern/include/boost/ )
 
 #if(${PYTHON_VERSION_STRING} GREATER 3.0)
 message(STATUS "Using Python3")
-set(Boost_LIBRARIES -lboost_python38 -lboost_numpy38)
+set(Boost_LIBRARIES -lboost_python38)
 #else()
 #  message(STATUS "Using Python2")
 #  set(Boost_LIBRARIES -lboost_python -lboost_numpy)
