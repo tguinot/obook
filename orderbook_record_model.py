@@ -47,7 +47,7 @@ def snapshot_orderbook(obh):
 	bids, asks = obh.snapshot_whole(100)
 	if bids == last_bids and asks == last_asks:
 		same_count += 1
-		if same_count > 20:
+		if same_count > 50:
 			print()
 			sys.exit(0)
 
@@ -87,5 +87,5 @@ if __name__ == "__main__":
 		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
 		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
 
-		time.sleep(0.3)
+		time.sleep(0.4)
 
