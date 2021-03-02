@@ -6,6 +6,7 @@ from pprint import pprint
 import json
 import time
 import signal
+from models import Service
 import os
 import universal_listenner
 import threading
@@ -63,7 +64,7 @@ class OrderbookFeeder(object):
 
 
 def launch_feeder(stream_port, shm_name, exchange, market):
-    feeder = OrderbookFeeder(fstream_port, shm_name, exchange, market)
+    feeder = OrderbookFeeder(stream_port, shm_name, exchange, market)
     print("Launching orderbook feeder for", exchange, market)
 
     def term_signal_handler(sig, frame):
@@ -79,8 +80,6 @@ def launch_feeder(stream_port, shm_name, exchange, market):
     signal.signal(signal.SIGTERM, term_signal_handler)
     signal.signal(signal.SIGINT, feeder_int_signal_handler)
 
-    # orderbook_feeder = Service(name='OrderbookFeeder', port=0, address='/shm_xyz', instrument='BTCUSD', exchange='BinanceUS')
-    # orderbook_feeder.save()
 
     feeder.run()
     return feeder
@@ -88,4 +87,8 @@ def launch_feeder(stream_port, shm_name, exchange, market):
 if __name__ == "__main__":
     print("Starting orderbook feeder process")
     stream_port, shm_name, exchange, market = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+    shm_name = '/shm_%04x' % random.randrange(16**4)
+
+    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market.id) & (Service.exchange == exchange))
+    query.execute()
     launch_feeder(stream_port, shm_name, exchange, market)
