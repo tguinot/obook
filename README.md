@@ -49,6 +49,8 @@ In order to add an instrument to the live data service, it must be defined in `m
             "quote": "USDT"
 }`
 
-The parameters for the live data service streams must also be defined in database under the Service table:![Screen Shot 2021-03-02 at 10 12 56](https://user-images.githubusercontent.com/529902/109626077-5f2f7080-7b40-11eb-8638-ddf2eee493b7.jpg)
+The parameters for the live data service streams and the orderbook feeders must also be defined in database under the Service table:![Screen Shot 2021-03-02 at 10 12 56](https://user-images.githubusercontent.com/529902/109626077-5f2f7080-7b40-11eb-8638-ddf2eee493b7.jpg)
+
+The SHM address of orderbook feeders will be rewritten automatically so the name at creation is irrelevant.
 
 The exchange as well as both currencies used by the instrument must also be defined in database un der the currency and exchange tables.
