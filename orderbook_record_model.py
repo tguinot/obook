@@ -13,20 +13,20 @@ import umsgpack
 
 target_exchange, target_instrument = sys.argv[1], sys.argv[2]
 
-orderbook_service_details = Service.get((Service.name == 'OrderbookService') & (Service.address == '127.0.0.1'))
-orderbook_service_port = orderbook_service_details.port
+orderbook_service_details = Service.get((Service.name == 'OrderbookFeeder') & (Service.exchange == target_exchange) & (Service.instrument == target_instrument))
+#orderbook_service_port = orderbook_service_details.port
 
 # Then we request to know the location of the data in shared memory so we can open it
-orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
+#orderbooks_details = umsgpack.loads(requests.get('http://localhost:{}/shm'.format(orderbook_service_port)).content, raw=False)
 
 
-for exchange_name_i, instrument_i, shm_path_i in orderbooks_details:
-	if exchange_name_i == target_exchange and instrument_i == target_instrument:
-		exchange_name, instrument, shm_path = exchange_name_i, instrument_i, shm_path_i
-		print(f"Found {target_exchange}:{target_instrument} located at {shm_path}")
-		break
+#for exchange_name_i, instrument_i, shm_path_i in orderbooks_details:
+	# if exchange_name_i == target_exchange and instrument_i == target_instrument:
+	# 	exchange_name, instrument, shm_path = exchange_name_i, instrument_i, shm_path_i
+	# 	print(f"Found {target_exchange}:{target_instrument} located at {shm_path}")
+	# 	break
 
-
+exchange_name, instrument, shm_path = target_exchange, target_instrument, orderbook_service_details.address
 obh_a = RtOrderbookReader(shm_path)
 
 base = Currency.get(Currency.name == target_instrument[:3])
@@ -64,7 +64,7 @@ def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, as
 	snap.save()
 
 if __name__ == "__main__":
-	print("Starting taking snapshots...")
+	print("Starting taking snapshots on", exchange_name, instrument, shm_path)
 
 	while True:
 		ts = datetime.datetime.utcnow()

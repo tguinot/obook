@@ -7,11 +7,10 @@ import time
 import os
 
 class UniversalFeedListenner():
-    def __init__(self, stream_addr, stream_port, exchange, instrument, update_type='trade', on_receive=None):
+    def __init__(self, stream_addr, stream_port, exchange, update_type='trade', on_receive=None):
         super().__init__()
         self.exchange = exchange
         self.update_type = update_type
-        self.instrument = instrument
         self.stream_addr = stream_addr
         self.stream_port = stream_port
         self.on_receive = on_receive

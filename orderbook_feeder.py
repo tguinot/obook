@@ -13,14 +13,14 @@ import threading
 
 
 class OrderbookFeeder(object):
-    def __init__(self, stream_port, shm, exchange, market):
+    def __init__(self, stream_port, shm, exchange):
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
         self.queue = []
         self.exchange = exchange
         self.lock = threading.Lock()
-        self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, market, 'orderbook', on_receive=self.display_insert)
-        print(f"Starting up Feed Listenner for {exchange} {market['id']}")
+        self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, 'orderbook', on_receive=self.display_insert)
+        print(f"Starting up Feed Listenner for {exchange} {stream_port} {shm}")
     
     def run(self):
         return self.lstr.run()
@@ -64,7 +64,7 @@ class OrderbookFeeder(object):
 
 
 def launch_feeder(stream_port, shm_name, exchange, market):
-    feeder = OrderbookFeeder(stream_port, shm_name, exchange, market)
+    feeder = OrderbookFeeder(stream_port, shm_name, exchange)
     print("Launching orderbook feeder for", exchange, market)
 
     def term_signal_handler(sig, frame):
@@ -86,9 +86,10 @@ def launch_feeder(stream_port, shm_name, exchange, market):
 
 if __name__ == "__main__":
     print("Starting orderbook feeder process")
-    stream_port, shm_name, exchange, market = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+    exchange, market = sys.argv[1], sys.argv[2]
+    stream = Service.get((Service.exchange == exchange) & (Service.instrument == market))
     shm_name = '/shm_%04x' % random.randrange(16**4)
 
-    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market.id) & (Service.exchange == exchange))
+    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market) & (Service.exchange == exchange))
     query.execute()
-    launch_feeder(stream_port, shm_name, exchange, market)
+    launch_feeder(stream.port, shm_name, exchange, market)
