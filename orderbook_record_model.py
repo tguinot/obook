@@ -9,6 +9,7 @@ from pprint import pprint
 import requests
 from models import OrderbookRecord, Currency, Exchange, Service
 import umsgpack
+import copy
 
 
 target_exchange, target_instrument = sys.argv[1], sys.argv[2]
@@ -33,11 +34,25 @@ base = Currency.get(Currency.name == target_instrument[:3])
 quote = Currency.get(Currency.name == target_instrument[3:].split('/')[-1])
 exchange = Exchange.get(Exchange.name == target_exchange)
 
+last_bids, last_asks = None, None
+same_count = 0
 
 def snapshot_orderbook(obh):
+	global last_bids
+	global last_asks
+	global same_count
+
 	bids_prices, asks_prices = [], []
 	bids_sizes, asks_sizes = [], []
 	bids, asks = obh.snapshot_whole(100)
+	if bids == last_bids and asks == last_asks:
+		same_count += 1
+		if same_count > 20:
+			print()
+			sys.exit(0)
+
+	last_bids, last_asks = copy.deepcopy(bids), copy.deepcopy(asks)
+
 
 	if len(bids) > 0:
 		mini, maxi = bids[-1][0], bids[0][0]
