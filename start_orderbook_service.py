@@ -10,6 +10,7 @@ import umsgpack
 import signal
 import os
 from flask import Flask
+import subprocess
 from models import Service
 from orderbook_feeder import OrderbookFeeder
 from collections import namedtuple
@@ -55,40 +56,21 @@ for market in all_markets:
     print("Fetched stream port", stream.port, "for", market)
     all_feeders.append(FeederEntry(market, stream.port))
 
-def launch_feeder(feeder_entry):
-    feeder = OrderbookFeeder(feeder_entry.stream_port, feeder_entry.shm_name, feeder_entry.exchange, market)
-    print("Launching orderbook feeder for", feeder_entry.exchange, feeder_entry.market)
-
-    def term_signal_handler(sig, frame):
-        print("Stopping feeder")
-        feeder.stop()
-        print("Releasing lock if needed...")
-        if feeder.lock.locked():
-            feeder.lock.release()
-
-    def feeder_int_signal_handler(sig, frame):
-        pass
-
-    signal.signal(signal.SIGTERM, term_signal_handler)
-    signal.signal(signal.SIGINT, feeder_int_signal_handler)
-    feeder.run()
-    return feeder
-
 for feeder_entry in all_feeders:
-    p = Process(target=launch_feeder, args=(feeder_entry,))
-    p.start()
-    feeder_procs.append(p)
+    subprocess.run(["bash", "start_single_orderbook.sh", feeder_entry.stream_port, feeder_entry.shm_name, feeder_entry.exchange, feeder_entry.market])
+
+    #feeder_procs.append(p)
 
 
-def int_signal_handler(sig, frame):
-    for p in feeder_procs:
-        print("Attempting terminating feeder process...")
-        p.terminate()
-        p.join()
-    sys.exit(0)
+# def int_signal_handler(sig, frame):
+#     for p in feeder_procs:
+#         print("Attempting terminating feeder process...")
+#         p.terminate()
+#         p.join()
+#     sys.exit(0)
 
 
-signal.signal(signal.SIGINT, int_signal_handler)
+# signal.signal(signal.SIGINT, int_signal_handler)
 
 
 started = True

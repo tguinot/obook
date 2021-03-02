@@ -5,7 +5,7 @@ import sys
 from pprint import pprint
 import json
 import time
-import os
+import signal
 import os
 import universal_listenner
 import threading
@@ -60,4 +60,32 @@ class OrderbookFeeder(object):
 
     def reset_orderbook(self):
         self.writer.reset_content()
-        
+
+
+def launch_feeder(stream_port, shm_name, exchange, market):
+    feeder = OrderbookFeeder(fstream_port, shm_name, exchange, market)
+    print("Launching orderbook feeder for", exchange, market)
+
+    def term_signal_handler(sig, frame):
+        print("Stopping feeder")
+        feeder.stop()
+        print("Releasing lock if needed...")
+        if feeder.lock.locked():
+            feeder.lock.release()
+
+    def feeder_int_signal_handler(sig, frame):
+        pass
+
+    signal.signal(signal.SIGTERM, term_signal_handler)
+    signal.signal(signal.SIGINT, feeder_int_signal_handler)
+
+    # orderbook_feeder = Service(name='OrderbookFeeder', port=0, address='/shm_xyz', instrument='BTCUSD', exchange='BinanceUS')
+    # orderbook_feeder.save()
+
+    feeder.run()
+    return feeder
+
+if __name__ == "__main__":
+    print("Starting orderbook feeder process")
+    stream_port, shm_name, exchange, market = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+    launch_feeder(stream_port, shm_name, exchange, market)

@@ -87,6 +87,9 @@ db.create_tables([Exchange, Currency, OrderbookRecord, Service])
 # orderbook_service_i = Service(name='OrderbookService', port=5000, address='127.0.0.1', instrument='ALL', exchange='ALL')
 # orderbook_service_i.save()
 
+# orderbook_feeder = Service(name='OrderbookFeeder', port=0, address='/shm_xyz', instrument='BTCUSD', exchange='BinanceUS')
+# orderbook_feeder.save()
+
 # ftx = Exchange(name="FTX")
 # ftx.save()
 
