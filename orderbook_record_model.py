@@ -47,9 +47,11 @@ def snapshot_orderbook(obh):
 	bids, asks = obh.snapshot_whole(100)
 	if bids == last_bids and asks == last_asks:
 		same_count += 1
-		if same_count > 50:
+		if same_count > 10:
 			print()
 			sys.exit(0)
+	else:
+		same_count = 0
 
 	last_bids, last_asks = copy.deepcopy(bids), copy.deepcopy(asks)
 
