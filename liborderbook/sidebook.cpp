@@ -44,8 +44,9 @@ SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
     mutex = new named_upgradable_mutex(open_or_create, mutex_path.c_str());
     // std::cout << "Setting up SHM segment " << path << std::endl;
     setup_segment(path, mode);
-    // std::cout << "Constructing SHM object " << path << std::endl;
+    // std::cout << "Constructing SHM objects " << path << std::endl;
     data = segment->find_or_construct< sidebook_content > ("unique")();
+    update_number = segment->find_or_construct< long > ("nonce")();
     default_value = fill_value;
     book_mode = mode;
     // std::cout << "Resetting SHM object " << path << std::endl;
@@ -53,7 +54,10 @@ SideBook::SideBook(std::string path, shm_mode mode, number fill_value){
 }
 
 void SideBook::reset_content(){
-    if (book_mode == read_write_shm) fill_with(default_value);
+    if (book_mode == read_write_shm) {
+        *update_number = 0;
+        fill_with(default_value);
+    }
 }
 
 void SideBook::fill_with(number fillNumber){
@@ -62,7 +66,7 @@ void SideBook::fill_with(number fillNumber){
         (*i)[0] = fillNumber;
         (*i)[1] = fillNumber;
     }
-    update_number++;
+    (*update_number)++;
 }
 
 number** SideBook::extract_to_limit(int limit){
@@ -109,7 +113,7 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
     } else if (to_insert[1].numerator() != 0){
         (*loc)[1] = to_insert[1];
     }
-    update_number++;
+    (*update_number)++;
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {

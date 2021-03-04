@@ -44,12 +44,40 @@ py::list OrderbookReader::py_snapshot_asks(int limit) {
   return asks->py_snapshot_to_limit(limit);
 }
 
-int OrderbookReader::py_bids_nonce() {
-  return bids->update_number;
+long OrderbookReader::py_bids_nonce() {
+  time_duration delay = seconds(3);
+  ptime locktime(second_clock::local_time());
+  locktime = locktime + delay;
+  long result;
+  
+  bool acquired_bids = bids->mutex->timed_lock_sharable(locktime);
+  if (acquired_bids) {
+    result = *(bids->update_number);
+  }
+
+  if (acquired_bids) {
+    bids->mutex->unlock_sharable();
+  }
+
+  return result;
 }
 
-int OrderbookReader::py_asks_nonce() {
-  return asks->update_number;
+long OrderbookReader::py_asks_nonce() {
+    time_duration delay = seconds(3);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + delay;
+    long result;
+    
+    bool acquired_asks = asks->mutex->timed_lock_sharable(locktime);
+    if (acquired_asks) {
+        result = *(asks->update_number);
+    }
+
+    if (acquired_asks) {
+        asks->mutex->unlock_sharable();
+    }
+
+    return result;
 }
 
 py::tuple OrderbookReader::py_snapshot_whole(int limit) {

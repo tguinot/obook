@@ -33,8 +33,8 @@ class OrderbookReader {
     boost::python::list py_snapshot_asks(int);
     boost::python::tuple py_snapshot_whole(int);
 
-    int py_bids_nonce();
-    int py_asks_nonce();
+    long py_bids_nonce();
+    long py_asks_nonce();
 
     boost::python::tuple py_first_price(bool);
 
