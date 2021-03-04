@@ -62,6 +62,7 @@ void SideBook::fill_with(number fillNumber){
         (*i)[0] = fillNumber;
         (*i)[1] = fillNumber;
     }
+    update_number++;
 }
 
 number** SideBook::extract_to_limit(int limit){
@@ -108,6 +109,7 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
     } else if (to_insert[1].numerator() != 0){
         (*loc)[1] = to_insert[1];
     }
+    update_number++;
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {

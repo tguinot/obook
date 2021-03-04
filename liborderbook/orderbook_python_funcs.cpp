@@ -44,6 +44,14 @@ py::list OrderbookReader::py_snapshot_asks(int limit) {
   return asks->py_snapshot_to_limit(limit);
 }
 
+int OrderbookReader::py_bids_nonce() {
+  return bids->update_number;
+}
+
+int OrderbookReader::py_asks_nonce() {
+  return asks->update_number;
+}
+
 py::tuple OrderbookReader::py_snapshot_whole(int limit) {
   time_duration delay = seconds(3);
   ptime locktime(second_clock::local_time());

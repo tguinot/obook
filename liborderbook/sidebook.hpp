@@ -60,6 +60,7 @@ class SideBook {
         SideBook(std::string, shm_mode, number);
 
         named_upgradable_mutex *mutex;
+        int update_number;
 
         number** snapshot_to_limit(int);
         number** extract_to_limit(int);
@@ -75,6 +76,10 @@ class SideBook {
 
         number get_default_value() {
           return default_value;
+        }
+
+        number get_update_number() {
+          return update_number;
         }
 
         sidebook_ascender begin();
