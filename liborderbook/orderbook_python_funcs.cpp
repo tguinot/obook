@@ -45,64 +45,58 @@ py::list OrderbookReader::py_snapshot_asks(int limit) {
 }
 
 long OrderbookReader::py_bids_nonce() {
-  time_duration delay = seconds(3);
-  ptime locktime(second_clock::local_time());
-  locktime = locktime + delay;
   long result;
   
-  bool acquired_bids = bids->mutex->timed_lock_sharable(locktime);
-  if (acquired_bids) {
-    result = *(bids->update_number);
-  }
-
-  if (acquired_bids) {
-    bids->mutex->unlock_sharable();
+  scoped_lock<named_upgradable_mutex> lock(*(bids->mutex), defer_lock);
+  ptime locktime(second_clock::local_time());
+  locktime = locktime + milliseconds(75);
+  
+  bool acquired_bids = lock.timed_lock(locktime);
+  result = *(bids->update_number);
+  if (!acquired_bids) {
+    std::cout << "Failed to acquire bids nonce!" << std::endl;
   }
 
   return result;
 }
 
 long OrderbookReader::py_asks_nonce() {
-    time_duration delay = seconds(3);
-    ptime locktime(second_clock::local_time());
-    locktime = locktime + delay;
     long result;
     
-    bool acquired_asks = asks->mutex->timed_lock_sharable(locktime);
-    if (acquired_asks) {
-        result = *(asks->update_number);
-    }
+    scoped_lock<named_upgradable_mutex> lock(*(asks->mutex), defer_lock);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + milliseconds(75);
 
-    if (acquired_asks) {
-        asks->mutex->unlock_sharable();
+    bool acquired_asks = lock.timed_lock(locktime);
+    result = *(asks->update_number);
+    if (!acquired_asks) {
+      std::cout << "Failed to acquire asks nonce!" << std::endl; 
     }
 
     return result;
 }
 
 py::tuple OrderbookReader::py_snapshot_whole(int limit) {
-  time_duration delay = seconds(3);
   ptime locktime(second_clock::local_time());
-  locktime = locktime + delay;
+  locktime = locktime + milliseconds(75);
 
   py::list snapped_bids; 
   py::list snapped_asks;
+
+  scoped_lock<named_upgradable_mutex> bidlock(*(bids->mutex), defer_lock);
   
-  bool acquired_bids = bids->mutex->timed_lock_sharable(locktime);
-  if (acquired_bids) {
-    snapped_bids = bids->py_snapshot_to_limit(limit);
+  bool acquired_bids = bidlock.timed_lock(locktime);
+  snapped_bids = bids->py_extract_to_limit(limit);
+  if (!acquired_bids) {
+    std::cout << "Failed to acquire bids in py_snapshot_whole!" << std::endl; 
   }
 
-  bool acquired_asks = asks->mutex->timed_lock_sharable(locktime);
-  if (acquired_asks) {
-    snapped_asks = asks->py_snapshot_to_limit(limit);
-  }
+  scoped_lock<named_upgradable_mutex> asklock(*(asks->mutex), defer_lock);
 
-  if (acquired_bids) {
-    bids->mutex->unlock_sharable();
-  }
-  if (acquired_asks) {
-    asks->mutex->unlock_sharable();
+  bool acquired_asks = asklock.timed_lock(locktime);
+  snapped_asks = asks->py_extract_to_limit(limit);
+  if (!acquired_asks) {
+    std::cout << "Failed to acquire asks in py_snapshot_whole!" << std::endl; 
   }
   return py::make_tuple(snapped_bids, snapped_asks);
 }

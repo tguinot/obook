@@ -51,8 +51,11 @@ class OrderbookFeeder(object):
             for ask in asks:
                 #print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
                 self.writer.set_ask_quantity_at(ask['size'], ask['price'])
-        finally:
+        except:
+            print("Failed to acquire memory!")
             self.lock.release()
+            sys.exit(1)
+        self.lock.release()
         # if not self.writer.is_sound():
         #     print('Incoherent ORDERBOOK')
         #     pprint(self.writer.snapshot_bids(10))
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     print("Starting orderbook feeder process")
     exchange, market = sys.argv[1], sys.argv[2]
     stream = Service.get((Service.exchange == exchange) & (Service.instrument == market))
-    shm_name = '/shm_%04x' % random.randrange(16**4)
+    shm_name = f"/shm_{exchange}_" + '%08x' % random.randrange(16**8)
 
     query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market) & (Service.exchange == exchange))
     query.execute()

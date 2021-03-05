@@ -1,10 +1,13 @@
 #include "orderbook.hpp"
 #include <unistd.h>
 #include <iostream>
+#include <boost/interprocess/sync/lock_options.hpp>
+#include "boost/date_time/posix_time/posix_time.hpp"
 #include <iomanip>
 
 namespace py = boost::python;
 using namespace boost::interprocess;
+using namespace boost::posix_time;
 
 void OrderbookReader::init_shm(std::string path){
   // std::cout << "Initiating reader shm" << '\n';
@@ -13,25 +16,32 @@ void OrderbookReader::init_shm(std::string path){
 }
 
 std::pair<number**, int> OrderbookReader::_side_up_to_volume_(SideBook *sb, number target_volume) {
- number** result = new number*[100];
- int i = 0;
- sharable_lock<named_upgradable_mutex> lock(*(sb->mutex));
- for (sidebook_ascender it=sb->begin(); it!=sb->end(); ++it){
-    if (price(it) == ZEROVAL)
-      break;
-    target_volume -= quantity(it);
-    result[i] = new number[2];
-    if (target_volume <= ZEROVAL) {
-      result[i][0] = price(it);
-      result[i][1] = (quantity(it) + target_volume);
-      break;
-    }
+  number** result = new number*[100];
+  int i = 0;
+  scoped_lock<named_upgradable_mutex> lock(*(sb->mutex), defer_lock);
+  ptime locktime(second_clock::local_time());
+  locktime = locktime + milliseconds(75);
+  
+  bool acquired = lock.timed_lock(locktime);
+  for (sidebook_ascender it=sb->begin(); it!=sb->end(); ++it){
+      if (price(it) == ZEROVAL)
+        break;
+      target_volume -= quantity(it);
+      result[i] = new number[2];
+      if (target_volume <= ZEROVAL) {
+        result[i][0] = price(it);
+        result[i][1] = (quantity(it) + target_volume);
+        break;
+      }
 
-    result[i][0] = price(it);
-    result[i][1] = quantity(it);
-    i++;
+      result[i][0] = price(it);
+      result[i][1] = quantity(it);
+      i++;
   }
-  return std::pair<number**, int>(result, i);
+  if (!acquired) {
+    std::cout << "Unable to acquire memory in _side_up_to_volume_" << std::endl;
+  }
+    return std::pair<number**, int>(result, i);
 }
 
 std::pair<number**, int> OrderbookReader::asks_up_to_volume(number target_volume) {

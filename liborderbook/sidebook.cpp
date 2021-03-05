@@ -2,6 +2,7 @@
 #include <iostream>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/interprocess/sync/sharable_lock.hpp>
+#include <boost/interprocess/sync/lock_options.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include <algorithm>
 
@@ -61,12 +62,19 @@ void SideBook::reset_content(){
 }
 
 void SideBook::fill_with(number fillNumber){
-    scoped_lock<named_upgradable_mutex> lock(*mutex);
+    scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + milliseconds(75);
+    
+    bool acquired = lock.timed_lock(locktime);
     for (sidebook_content::iterator i= data->begin(); i!=data->end(); i++){
         (*i)[0] = fillNumber;
         (*i)[1] = fillNumber;
     }
     (*update_number)++;
+    if (!acquired) {
+        std::cout << "Unable to acquire memory in fill_with" << std::endl;
+    }
 }
 
 number** SideBook::extract_to_limit(int limit){
@@ -85,8 +93,14 @@ number** SideBook::extract_to_limit(int limit){
 }
 
 number** SideBook::snapshot_to_limit(int limit){
-    sharable_lock<named_upgradable_mutex> lock(*mutex);
-
+    scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + milliseconds(75);
+    
+    bool acquired = lock.timed_lock(locktime);
+    if (!acquired) {
+        std::cout << "Unable to acquire memory in snapshot_to_limit" << std::endl;
+    }
     return extract_to_limit(limit);
 }
 
@@ -117,31 +131,31 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
 }
 
 void SideBook::insert_ask(number new_price, number new_quantity) {
-    time_duration delay = seconds(3);
-    ptime locktime(second_clock::local_time());
-
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    bool acquired = mutex->timed_lock_upgradable(locktime);
-    if (acquired) {
-        sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
-        insert_at_place(data, to_insert, loc);
-        mutex->unlock_upgradable();
-    } else {
-        throw "Unable to acquire asks memory!";
+
+    scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + milliseconds(75);
+    
+    bool acquired = lock.timed_lock(locktime);
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
+    insert_at_place(data, to_insert, loc);
+    if (!acquired) {
+        std::cout << "Unable to acquire memory in insert_ask" << std::endl;
     }
 }
 
 void SideBook::insert_bid(number new_price, number new_quantity) {
-    time_duration delay = seconds(3);
-    ptime locktime(second_clock::local_time());
-
     orderbook_entry_type to_insert = {new_price, new_quantity};
-    bool acquired = mutex->timed_lock_upgradable(locktime);
-    if (acquired) {
-        sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
-        insert_at_place(data, to_insert, loc);
-        mutex->unlock_upgradable();
-    } else {
-        throw "Unable to acquire bids memory!";
+
+    scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+    ptime locktime(second_clock::local_time());
+    locktime = locktime + milliseconds(75);
+    bool acquired = lock.timed_lock(locktime);
+    
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
+    insert_at_place(data, to_insert, loc);
+    if (!acquired) {
+        std::cout << "Unable to acquire memory in insert_bid" << std::endl;
     }
 }

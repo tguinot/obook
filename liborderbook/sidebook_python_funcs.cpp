@@ -1,7 +1,10 @@
 #include "sidebook.hpp"
+#include <boost/interprocess/sync/lock_options.hpp>
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 namespace py = boost::python;
-
+using namespace boost::interprocess;
+using namespace boost::posix_time;
 
 py::list SideBook::py_extract_to_limit(int limit){
   py::list result;
@@ -16,7 +19,14 @@ py::list SideBook::py_extract_to_limit(int limit){
 }
 
 py::list SideBook::py_snapshot_to_limit(int limit){
-  sharable_lock<named_upgradable_mutex> lock(*mutex);
+  scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+  ptime locktime(second_clock::local_time());
+  locktime = locktime + milliseconds(75);
+  
+  bool acquired = lock.timed_lock(locktime);
+  if (!acquired) {
+    std::cout << "Unable to acquire memory in py_snapshot_to_limit" << std::endl;
+  }
   
   return py_extract_to_limit(limit);
 }
