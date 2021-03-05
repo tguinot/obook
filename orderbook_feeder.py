@@ -43,7 +43,7 @@ class OrderbookFeeder(object):
         self.lock.acquire()
         try:
             if 'Binance' == self.exchange or update['server_received'] == -1:
-                print("Resetting content of Orderbook",update["exchange"], "for", update["base"]+update["quote"])
+                print(f'Resetting content of Orderbook {update["exchange"]} for {update["base"]+update["quote"]}')
                 self.writer.reset_content()
             for bid in bids:
                 #print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
