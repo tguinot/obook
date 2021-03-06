@@ -6,6 +6,7 @@ class ResilientOrderbookReader(RtOrderbookReader):
     def __init__(self, exchange, instrument):
         self.exchange, self.instrument = exchange, instrument
         shm = self.get_orderbook_shm()
+        self.shm = shm
         super().__init__(shm)
 
     def get_orderbook_shm(self):

@@ -20,12 +20,14 @@ py::list SideBook::py_extract_to_limit(int limit){
 
 py::list SideBook::py_snapshot_to_limit(int limit){
   scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
-  ptime locktime(second_clock::local_time());
+  ptime locktime(microsec_clock::local_time());
   locktime = locktime + milliseconds(75);
   
   bool acquired = lock.timed_lock(locktime);
   if (!acquired) {
     std::cout << "Unable to acquire memory in py_snapshot_to_limit" << std::endl;
+  } else {
+    lock.unlock();
   }
   
   return py_extract_to_limit(limit);

@@ -19,7 +19,7 @@ std::pair<number**, int> OrderbookReader::_side_up_to_volume_(SideBook *sb, numb
   number** result = new number*[100];
   int i = 0;
   scoped_lock<named_upgradable_mutex> lock(*(sb->mutex), defer_lock);
-  ptime locktime(second_clock::local_time());
+  ptime locktime(microsec_clock::local_time());
   locktime = locktime + milliseconds(75);
   
   bool acquired = lock.timed_lock(locktime);
@@ -40,8 +40,11 @@ std::pair<number**, int> OrderbookReader::_side_up_to_volume_(SideBook *sb, numb
   }
   if (!acquired) {
     std::cout << "Unable to acquire memory in _side_up_to_volume_" << std::endl;
+  }else {
+    lock.unlock();
   }
-    return std::pair<number**, int>(result, i);
+
+  return std::pair<number**, int>(result, i);
 }
 
 std::pair<number**, int> OrderbookReader::asks_up_to_volume(number target_volume) {
@@ -68,10 +71,18 @@ void OrderbookWriter::reset_content(){
 }
 
 void OrderbookWriter::set_quantity_at (order_side side, number new_quantity, number new_price) {
+  ptime tm(microsec_clock::local_time());
+  
   if (side == ASK)
     asks->insert_ask(new_price, new_quantity);
   else if (side == BID)
     bids->insert_bid(new_price, new_quantity);
+  
+  ptime um(microsec_clock::local_time());
+
+  //std::cout << "Time is when starting to set quantity is " << tm.time_of_day().total_microseconds() << std::endl;
+  //std::cout << "Time is when finishing to set quantity is " << um.time_of_day().total_microseconds() << std::endl;
+
 }
 
 void OrderbookWriter::init_shm(std::string path) {

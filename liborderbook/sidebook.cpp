@@ -63,7 +63,7 @@ void SideBook::reset_content(){
 
 void SideBook::fill_with(number fillNumber){
     scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
-    ptime locktime(second_clock::local_time());
+    ptime locktime(microsec_clock::local_time());
     locktime = locktime + milliseconds(75);
     
     bool acquired = lock.timed_lock(locktime);
@@ -74,6 +74,8 @@ void SideBook::fill_with(number fillNumber){
     (*update_number)++;
     if (!acquired) {
         std::cout << "Unable to acquire memory in fill_with" << std::endl;
+    } else {
+        lock.unlock();
     }
 }
 
@@ -94,7 +96,7 @@ number** SideBook::extract_to_limit(int limit){
 
 number** SideBook::snapshot_to_limit(int limit){
     scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
-    ptime locktime(second_clock::local_time());
+    ptime locktime(microsec_clock::local_time());
     locktime = locktime + milliseconds(75);
     
     bool acquired = lock.timed_lock(locktime);
@@ -134,7 +136,7 @@ void SideBook::insert_ask(number new_price, number new_quantity) {
     orderbook_entry_type to_insert = {new_price, new_quantity};
 
     scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
-    ptime locktime(second_clock::local_time());
+    ptime locktime(microsec_clock::local_time());
     locktime = locktime + milliseconds(75);
     
     bool acquired = lock.timed_lock(locktime);
@@ -142,6 +144,8 @@ void SideBook::insert_ask(number new_price, number new_quantity) {
     insert_at_place(data, to_insert, loc);
     if (!acquired) {
         std::cout << "Unable to acquire memory in insert_ask" << std::endl;
+    } else {
+        lock.unlock();
     }
 }
 
@@ -149,7 +153,7 @@ void SideBook::insert_bid(number new_price, number new_quantity) {
     orderbook_entry_type to_insert = {new_price, new_quantity};
 
     scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
-    ptime locktime(second_clock::local_time());
+    ptime locktime(microsec_clock::local_time());
     locktime = locktime + milliseconds(75);
     bool acquired = lock.timed_lock(locktime);
     
@@ -157,5 +161,7 @@ void SideBook::insert_bid(number new_price, number new_quantity) {
     insert_at_place(data, to_insert, loc);
     if (!acquired) {
         std::cout << "Unable to acquire memory in insert_bid" << std::endl;
+    } else {
+        lock.unlock();
     }
 }
