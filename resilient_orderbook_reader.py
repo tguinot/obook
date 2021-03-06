@@ -15,4 +15,5 @@ class ResilientOrderbookReader(RtOrderbookReader):
 
     def refresh_orderbook(self):
         shm = self.get_orderbook_shm()
+        self.shm = shm
         super().init_shm(shm)

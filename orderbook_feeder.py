@@ -45,11 +45,12 @@ class OrderbookFeeder(object):
             if 'Binance' == self.exchange or update['server_received'] == -1:
                 print(f'Resetting content of Orderbook {update["exchange"]} for {update["base"]+update["quote"]}')
                 self.writer.reset_content()
+                print(f'Finished resetting content of Orderbook {update["exchange"]} for {update["base"]+update["quote"]}')
             for bid in bids:
-                #print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
+                print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
                 self.writer.set_bid_quantity_at(bid['size'], bid['price'])
             for ask in asks:
-                #print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
+                print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
                 self.writer.set_ask_quantity_at(ask['size'], ask['price'])
         except:
             print("Failed to acquire memory!")
