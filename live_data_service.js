@@ -80,7 +80,7 @@ const Service = sequelize.define('Service', {
                 if ("orderbook"+ob.exchange+ob.base+ob.quote == sock_name) {
                     console.log("Sending update for", sock_name) 
                     if (publish_socks[sock_name]['sock'].warned_reset == false) {
-                        reset_msg = {server_received: -1, exchange: ob.exchange, base: ob.base, quote: ob.quote, bids: [], asks: []};
+                        reset_msg = {server_received: -1, sequenceId: -1, exchange: ob.exchange, base: ob.base, quote: ob.quote, bids: [], asks: []};
                         publish_socks[sock_name]['sock'].send(msgpack.pack(reset_msg));
                         publish_socks[sock_name]['sock'].warned_reset = true;
                     }
