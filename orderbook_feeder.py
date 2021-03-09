@@ -46,7 +46,7 @@ class OrderbookFeeder(object):
                 self.queue = []
             self.queue.append(update)
             if self.starting:
-                if len(self.queue) > 2:
+                if len(self.queue) > 8:
                     initial_book = self.fetch_orderbook_from_rest()
                     self.queue = [initial_book] + self.queue
                     self.starting = False
