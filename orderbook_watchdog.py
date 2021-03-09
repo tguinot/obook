@@ -41,14 +41,16 @@ while True:
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             except Exception as e:
                 print("Failed to refresh orderbook:", e, "restarting data services")
-                subprocess.run(["bash", "restart_data_services.sh"])
+                subprocess.run(["pm2", "restart", "LiveDataService"])
+                subprocess.run(["pm2", "restart", "OrderbookBinanceUSBTCUSD"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             if asks_nonce == reader.asks_nonce() or bids_nonce == reader.bids_nonce():
                 print("Orderbook still stale, restarting data services")
-                subprocess.run(["bash", "restart_data_services.sh"])
+                subprocess.run(["pm2", "restart", "LiveDataService"])
+                subprocess.run(["pm2", "restart", "OrderbookBinanceUSBTCUSD"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
