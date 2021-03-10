@@ -18,8 +18,7 @@ class OrderbookFeeder(object):
     def __init__(self, stream_port, shm, exchange, market):
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
-        self.starting = True
-        self.queue = []
+        self.restart_listenning()
         self.exchange = exchange
         exchange_class = getattr(ccxt, exchange.lower())
         self.rest_client = exchange_class()
@@ -38,15 +37,20 @@ class OrderbookFeeder(object):
     def stop(self):
         self.lstr.stop()
 
+    def restart_listenning(self):
+        print("Restarting listenning...")
+        self.starting = True
+        self.queue = []
+        self.start_time = time.time()
+
     def queue_update(self, update):
         self.lock.acquire()
         try:
             if update['server_received'] == -1:
-                self.starting = True
-                self.queue = []
+                self.restart_listenning()
             self.queue.append(update)
             if self.starting:
-                if len(self.queue) > 8:
+                if len(self.queue) > 2:
                     initial_book = self.fetch_orderbook_from_rest()
                     self.queue = [initial_book] + self.queue
                     self.starting = False
@@ -56,6 +60,7 @@ class OrderbookFeeder(object):
             self.lock.release()
 
     def fetch_orderbook_from_rest(self):
+        print("Fetching full orderbook from REST interface")
         raw_ob = self.rest_client.fetch_l2_order_book('BTC/USD')
         raw_ob['sequenceId'] = 0
         return raw_ob
@@ -65,13 +70,11 @@ class OrderbookFeeder(object):
         while True:
             if self.starting:
                 print("Ignoring queue as starting...")
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
             if len(self.queue) == 0:
                 continue
-            print("Acquiring lock of queue...")
             self.lock.acquire()
-            print("Done Acquiring lock of queue...")
             update = self.queue.pop(0)
             #print("Processing update in queue:", update)
             self.lock.release()
@@ -98,11 +101,14 @@ class OrderbookFeeder(object):
                 print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
                 self.writer.set_ask_quantity_at(ask['size'], ask['price'])
 
-        if not self.writer.is_sound() :
+        if not self.writer.is_sound() and (time.time() - self.start_time) > 4 :
             print('Incoherent ORDERBOOK: crossing detected, resetting')
             pprint(self.writer.snapshot_bids(10))
             pprint(self.writer.snapshot_asks(10))
-            self.writer.reset_content()
+            self.lock.acquire()
+            self.restart_listenning()
+            self.lock.release()
+            self.writer.reset_content() 
 
 
     def reset_orderbook(self):

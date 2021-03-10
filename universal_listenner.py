@@ -42,6 +42,7 @@ class UniversalFeedListenner():
         print("Now listenning...")
         while self.running:
             update = umsgpack.loads(self.zmq_socket.recv(), raw=False)
+            #print("Recvd pack", update)
             self.on_receive(update)
         print("Listenner stopping")
     
