@@ -55,6 +55,7 @@ class SideBook {
 
     void setup_segment (std::string, shm_mode);
     void insert_at_place(sidebook_content*, orderbook_entry_type, sidebook_content::iterator);
+    void _delete_first_entry();
 
 	public:
         SideBook(std::string, shm_mode, number);
@@ -71,6 +72,7 @@ class SideBook {
 
         void insert_ask(number, number);
         void insert_bid(number, number);
+        void clean_first_limit();
         
         void reset_content();
 

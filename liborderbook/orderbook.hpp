@@ -51,6 +51,8 @@ class OrderbookWriter: public OrderbookReader {
   	
     void init_shm (std::string);
     void reset_content();
+    void clean_top_ask();
+    void clean_top_bid();
     void set_quantity_at (order_side, number, number);
     void py_set_quantity_at (order_side, base_number, base_number, base_number, base_number);
  };

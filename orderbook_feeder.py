@@ -8,18 +8,24 @@ import json
 from pprint import pprint
 import time
 import signal
-from models import Service
+from models import Service, Instrument
 import os
 import universal_listenner
 import threading
+from decimal import Decimal
+
+def dec(n, d):
+	return Decimal(n) / Decimal(d)
 
 
 class OrderbookFeeder(object):
-    def __init__(self, stream_port, shm, exchange, market):
+    def __init__(self, stream_port, shm, exchange, ccxt_instrument):
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
         self.restart_listenning()
+        self.circle_counter = 0
         self.exchange = exchange
+        self.ccxt_instrument = ccxt_instrument
         exchange_class = getattr(ccxt, exchange.lower())
         self.rest_client = exchange_class()
         self.lock = threading.Lock()
@@ -55,13 +61,18 @@ class OrderbookFeeder(object):
                     self.queue = [initial_book] + self.queue
                     self.starting = False
                     print("Enough cached data, inserting...")
-            self.queue.sort(key=lambda x: x['sequenceId'])
+            if 'sequenceId' in update and update['sequenceId'] > 0:
+                self.queue.sort(key=lambda x: x['sequenceId'])
+        except Exception as e:
+            print("Failed to update queue with")
+            pprint(update)
+            print(e)
         finally:
             self.lock.release()
 
     def fetch_orderbook_from_rest(self):
-        print("Fetching full orderbook from REST interface")
-        raw_ob = self.rest_client.fetch_l2_order_book('BTC/USD')
+        print("Fetching full orderbook from REST interface", self.ccxt_instrument.name)
+        raw_ob = self.rest_client.fetch_l2_order_book(self.ccxt_instrument.name)
         raw_ob['sequenceId'] = 0
         return raw_ob
 
@@ -82,24 +93,31 @@ class OrderbookFeeder(object):
 
     def display_insert(self, update):
         bids, asks = update['bids'], update['asks']
-        if 'Binance' == self.exchange or update['sequenceId'] == 0:
+        if 'Binance' == self.exchange or update.get('sequenceId') == 0:
             print(f'Resetting content of Orderbook')
             self.writer.reset_content()
             print(f'Finished resetting content of Orderbook')
+        if self.circle_counter > 120:
+            print("Cleaning first entries of orderbook", dec(*self.writer.first_price(True)), dec(*self.writer.first_price(False)))
+            self.writer.clean_top_bid()
+            self.writer.clean_top_ask()
+            self.circle_counter = 0
         for bid in bids:
-            if update['sequenceId'] == 0:
+            if update.get('sequenceId') == 0:
                 print("Inserting in {} REST bid: {}@{}".format(self.shm, str(bid[1]), str(bid[0])))
                 self.writer.set_bid_quantity_at(str(bid[1]), str(bid[0]))
             else:
-                print("Inserting in {} bid from {}: {}@{}".format(self.shm, update['exchange'], bid['size'], bid['price']))
+                print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
                 self.writer.set_bid_quantity_at(bid['size'], bid['price'])
+            self.circle_counter += 1
         for ask in asks:
-            if update['sequenceId'] == 0:
+            if update.get('sequenceId') == 0:
                 print("Inserting in {} REST ask: {}@{}".format(self.shm, str(ask[1]), str(ask[0])))
                 self.writer.set_ask_quantity_at(str(ask[1]), str(ask[0]))
             else:
-                print("Inserting in {} ask from {}: {}@{}".format(self.shm, update['exchange'], ask['size'], ask['price']))
+                print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
                 self.writer.set_ask_quantity_at(ask['size'], ask['price'])
+            self.circle_counter += 1
 
         if not self.writer.is_sound() and (time.time() - self.start_time) > 4 :
             print('Incoherent ORDERBOOK: crossing detected, resetting')
@@ -109,15 +127,17 @@ class OrderbookFeeder(object):
             self.restart_listenning()
             self.lock.release()
             self.writer.reset_content() 
+        
+        
 
 
     def reset_orderbook(self):
         self.writer.reset_content()
 
 
-def launch_feeder(stream_port, shm_name, exchange, market):
-    feeder = OrderbookFeeder(stream_port, shm_name, exchange, market)
-    print("Launching orderbook feeder for", exchange, market)
+def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
+    feeder = OrderbookFeeder(stream_port, shm_name, exchange, ccxt_instrument)
+    print("Launching orderbook feeder for", exchange, ccxt_instrument.name)
 
     def term_signal_handler(sig, frame):
         print("Stopping feeder")
@@ -136,8 +156,10 @@ if __name__ == "__main__":
     print("Starting orderbook feeder process")
     exchange, market = sys.argv[1], sys.argv[2]
     stream = Service.get((Service.exchange == exchange) & (Service.instrument == market))
+    exchange_instrument = Instrument.get((Instrument.exchange_name == exchange) & (Instrument.name == market))
+    ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote))
     shm_name = f"/shm_{exchange}_" + '%08x' % random.randrange(16**8)
 
     query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market) & (Service.exchange == exchange))
     query.execute()
-    launch_feeder(stream.port, shm_name, exchange, market)
+    launch_feeder(stream.port, shm_name, exchange, ccxt_instrument)

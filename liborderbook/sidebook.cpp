@@ -132,6 +132,26 @@ void SideBook::insert_at_place(sidebook_content *data, orderbook_entry_type to_i
     (*update_number)++;
 }
 
+void SideBook::_delete_first_entry(){
+    std::copy(data->begin()+1, data->end(), data->begin());
+        data->back()[0] = default_value;
+        data->back()[1] = default_value;
+}
+
+void SideBook::clean_first_limit() {
+    scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+    ptime locktime(microsec_clock::local_time());
+    locktime = locktime + milliseconds(75);
+
+    bool acquired = lock.timed_lock(locktime);
+    _delete_first_entry();
+    if (!acquired) {
+        std::cout << "Unable to acquire memory in insert_ask" << std::endl;
+    } else {
+        lock.unlock();
+    }
+}
+
 void SideBook::insert_ask(number new_price, number new_quantity) {
     orderbook_entry_type to_insert = {new_price, new_quantity};
 

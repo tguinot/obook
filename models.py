@@ -38,6 +38,17 @@ class Currency(Model):
         database = db
 
 
+class Instrument(Model):
+    id = AutoField()
+    base = ForeignKeyField(Currency)
+    quote = ForeignKeyField(Currency)
+    exchange_name = CharField(null=True)
+    name = CharField(null=True)
+
+    class Meta:
+        database = db
+
+
 class OrderbookRecord(Model):
     id = AutoField()
     base = ForeignKeyField(Currency)
@@ -68,8 +79,26 @@ class OrderbookUpdate(Model):
 
 
 db.connect()
-db.create_tables([Exchange, Currency, OrderbookRecord, Service])
+db.create_tables([Exchange, Currency, OrderbookRecord, Service, Instrument])
 
+
+# eth = Currency.get(Currency.name == 'ETH')
+# btc = Currency.get(Currency.name == 'BTC')
+# usd = Currency.get(Currency.name == 'USD')
+
+# btcusd_ftx = Instrument(base=btc, quote=usd, name='BTC/USD', exchange_name='FTX')
+# btcusd_ftx.save()
+# btcusd_binanceus = Instrument(base=btc, quote=usd, name='BTCUSD', exchange_name='BinanceUS')
+# btcusd_binanceus.save()
+# btcusd_ccxt = Instrument(base=btc, quote=usd, name='BTC/USD', exchange_name='ccxt')
+# btcusd_ccxt.save()
+        
+# ethusd_ftx = Instrument(base=eth, quote=usd, name='ETH/USD', exchange_name='FTX')
+# ethusd_ftx.save()
+# ethusd_binanceus = Instrument(base=eth, quote=usd, name='ETHUSD', exchange_name='BinanceUS')
+# ethusd_binanceus.save()
+# ethusd_ccxt = Instrument(base=eth, quote=usd, name='ETH/USD', exchange_name='ccxt')
+# ethusd_ccxt.save()
 
 # orderbook_service_d = Service(name='LiveDataService', port=4242, address='127.0.0.1', instrument='ALL', exchange='ALL')
 # orderbook_service_d.save()

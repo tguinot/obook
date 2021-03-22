@@ -44,6 +44,14 @@ py::list OrderbookReader::py_snapshot_asks(int limit) {
   return asks->py_snapshot_to_limit(limit);
 }
 
+void OrderbookWriter::clean_top_ask() {
+  return asks->clean_first_limit();
+}
+
+void OrderbookWriter::clean_top_bid() {
+  return bids->clean_first_limit();
+}
+
 long OrderbookReader::py_bids_nonce() {
   long result;
   
