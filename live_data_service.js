@@ -17,7 +17,6 @@ const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${pr
 const markets_config = JSON.parse(fs.readFileSync('markets_config.json', 'utf8'));
 
 const Service = sequelize.define('Service', {
-    // Model attributes are defined here
     name: {
       type: DataTypes.STRING
     },

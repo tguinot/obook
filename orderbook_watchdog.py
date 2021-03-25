@@ -3,7 +3,7 @@ import time
 import subprocess
 import zmq
 
-orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}]#, {'exchange': 'FTX', 'instrument': 'BTC/USD'}]
+orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}]
 
 orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]
 
@@ -43,6 +43,7 @@ while True:
                 print("Failed to refresh orderbook:", e, "restarting data services")
                 subprocess.run(["pm2", "restart", "LiveDataService"])
                 subprocess.run(["pm2", "restart", "OrderbookBinanceUSBTCUSD"])
+                subprocess.run(["pm2", "restart", "OrderbookFTXBTC/USD"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
@@ -51,6 +52,7 @@ while True:
                 print("Orderbook still stale, restarting data services")
                 subprocess.run(["pm2", "restart", "LiveDataService"])
                 subprocess.run(["pm2", "restart", "OrderbookBinanceUSBTCUSD"])
+                subprocess.run(["pm2", "restart", "OrderbookFTXBTC/USD"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0

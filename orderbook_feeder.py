@@ -97,7 +97,7 @@ class OrderbookFeeder(object):
             print(f'Resetting content of Orderbook')
             self.writer.reset_content()
             print(f'Finished resetting content of Orderbook')
-        if self.circle_counter > 120:
+        if self.circle_counter > 400:
             print("Cleaning first entries of orderbook", dec(*self.writer.first_price(True)), dec(*self.writer.first_price(False)))
             self.writer.clean_top_bid()
             self.writer.clean_top_ask()
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     exchange, market = sys.argv[1], sys.argv[2]
     stream = Service.get((Service.exchange == exchange) & (Service.instrument == market))
     exchange_instrument = Instrument.get((Instrument.exchange_name == exchange) & (Instrument.name == market))
-    ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote))
+    ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
     shm_name = f"/shm_{exchange}_" + '%08x' % random.randrange(16**8)
 
     query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market) & (Service.exchange == exchange))

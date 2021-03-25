@@ -6,12 +6,7 @@
             "base": "BTC",
             "quote": "USD"
         },
-        {
-            "exchange": "BinanceUS",
-            "id": "ETHUSD",
-            "base": "ETH",
-            "quote": "USD"
-        },
+        
         {
             "exchange": "FTX",
             "id": "BTC/USD",
@@ -20,9 +15,10 @@
         },
         {
             "exchange": "FTX",
-            "id": "ETH/USD",
-            "base": "ETH",
-            "quote": "USD"
+            "id": "BTC-PERP",
+            "base": "BTC",
+            "quote": "PERP",
+            "type": "futures"
         }
     ]
 }

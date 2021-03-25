@@ -44,6 +44,7 @@ class Instrument(Model):
     quote = ForeignKeyField(Currency)
     exchange_name = CharField(null=True)
     name = CharField(null=True)
+    kind = CharField(null=True)
 
     class Meta:
         database = db
@@ -58,6 +59,7 @@ class OrderbookRecord(Model):
     ask_sizes = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 11, "auto_round": True})
     ask_prices = ArrayField(DecimalField, {"max_digits": 18, "decimal_places": 11, "auto_round": True})
     exchange = ForeignKeyField(Exchange)
+    kind = CharField(null=True)
     timestamp = DateTimeField()
 
     class Meta:
