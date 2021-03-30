@@ -137,7 +137,7 @@ class OrderbookFeeder(object):
 
 def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
     feeder = OrderbookFeeder(stream_port, shm_name, exchange, ccxt_instrument)
-    print("Launching orderbook feeder for", exchange, ccxt_instrument.name)
+    print("Launching orderbook feeder for", exchange, ccxt_instrument.name, "listenning on port", stream_port)
 
     def term_signal_handler(sig, frame):
         print("Stopping feeder")
@@ -155,7 +155,7 @@ def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
 if __name__ == "__main__":
     print("Starting orderbook feeder process")
     exchange, market = sys.argv[1], sys.argv[2]
-    stream = Service.get((Service.exchange == exchange) & (Service.instrument == market))
+    stream = Service.get((Service.exchange == exchange) & (Service.instrument == market) & (Service.name == 'OrderbookDataStream'))
     exchange_instrument = Instrument.get((Instrument.exchange_name == exchange) & (Instrument.name == market))
     ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
     shm_name = f"/shm_{exchange}_" + '%08x' % random.randrange(16**8)

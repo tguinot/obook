@@ -39,7 +39,7 @@ def snapshot_orderbook(obh):
 	if bids == last_bids and asks == last_asks:
 		same_count += 1
 		if same_count > 20:
-			print()
+			print("Orderbook is stale, exiting")
 			sys.exit(0)
 	else:
 		same_count = 0
@@ -81,4 +81,4 @@ if __name__ == "__main__":
 		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts, db_instrument.kind)
 
 		time.sleep(0.4)
-
+	print("Leaving the for loop")
