@@ -12,6 +12,7 @@ from models import Service, Instrument
 import os
 import universal_listenner
 import threading
+from slack_lib import send_slack_alert
 from decimal import Decimal
 
 def dec(n, d):
@@ -107,7 +108,7 @@ class OrderbookFeeder(object):
                 print("Inserting in {} REST bid: {}@{}".format(self.shm, str(bid[1]), str(bid[0])))
                 self.writer.set_bid_quantity_at(str(bid[1]), str(bid[0]))
             else:
-                print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
+                #print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
                 self.writer.set_bid_quantity_at(bid['size'], bid['price'])
             self.circle_counter += 1
         for ask in asks:
@@ -115,12 +116,14 @@ class OrderbookFeeder(object):
                 print("Inserting in {} REST ask: {}@{}".format(self.shm, str(ask[1]), str(ask[0])))
                 self.writer.set_ask_quantity_at(str(ask[1]), str(ask[0]))
             else:
-                print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
+                #print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
                 self.writer.set_ask_quantity_at(ask['size'], ask['price'])
             self.circle_counter += 1
 
         if not self.writer.is_sound() and (time.time() - self.start_time) > 4 :
-            print('Incoherent ORDERBOOK: crossing detected, resetting')
+            message = '[FEEDER] Incoherent ORDERBOOK: crossing detected, resetting' + self.shm
+            print(message)
+            send_slack_alert("#alerts", message)
             pprint(self.writer.snapshot_bids(10))
             pprint(self.writer.snapshot_asks(10))
             self.lock.acquire()
