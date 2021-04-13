@@ -64,6 +64,8 @@ class OrderbookFeeder(object):
                     print("Enough cached data, inserting...")
             if 'sequenceId' in update and update['sequenceId'] > 0:
                 self.queue.sort(key=lambda x: x['sequenceId'])
+            else:
+                self.queue.sort(key=lambda x: x['server_received'])
         except Exception as e:
             print("Failed to update queue with")
             pprint(update)
