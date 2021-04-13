@@ -6,8 +6,8 @@ import os
 from pprint import pprint
 from playhouse.postgres_ext import *
 
-# db = SqliteDatabase('qlabs_trading.db')
 db = PostgresqlExtDatabase(os.environ.get('POSTGRES_DB_NAME'), user=os.environ.get('POSTGRES_DB_USER'), host=os.environ.get('POSTGRES_DB_HOST'), password=os.environ.get('POSTGRES_DB_PASSWD'), port=os.environ.get('POSTGRES_DB_PORT'), sslmode='require')
+services_db = PostgresqlExtDatabase(os.environ.get('POSTGRES_SERVICES_DB_NAME'), user=os.environ.get('POSTGRES_SERVICES_DB_USER'), host=os.environ.get('POSTGRES_SERVICES_DB_HOST'), password=os.environ.get('POSTGRES_SERVICES_DB_PASSWD'), port=os.environ.get('POSTGRES_SERVICES_DB_PORT'), sslmode='require')
 
 
 class Exchange(Model):
@@ -27,7 +27,7 @@ class Service(Model):
 
     class Meta:
         table_name = 'service'
-        database = db
+        database = services_db
 
 
 class Currency(Model):
@@ -81,6 +81,8 @@ class OrderbookUpdate(Model):
 
 
 db.connect()
+services_db.connect()
+
 #db.create_tables([Exchange, Currency, OrderbookRecord, Service, Instrument])
 
 ##ftx = Exchange(name="FTX")
