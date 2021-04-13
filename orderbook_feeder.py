@@ -35,7 +35,7 @@ class OrderbookFeeder(object):
         time.sleep(2)
         print("Requested start of process queue thread")
         self.lstr = universal_listenner.UniversalFeedListenner('127.0.0.1', stream_port, exchange, 'orderbook', on_receive=self.queue_update)
-        print(f"Starting up Feed Listenner for {exchange} {stream_port} {shm}")
+        print(f"Starting up Feed Listenner for {exchange} listenning to stream port {stream_port} writing to {shm}")
     
     def run(self):
         self.listen_thread = threading.Thread(target=self.lstr.run)

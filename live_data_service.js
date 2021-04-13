@@ -6,7 +6,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 var fs = require('fs');
 const { Level2Update } = require("ccxws");
 
-const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_DB_USER}:${process.env.POSTGRES_DB_PASSWD}@${process.env.POSTGRES_DB_HOST}:${process.env.POSTGRES_DB_PORT}/${process.env.POSTGRES_DB_NAME}`, {
+const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_SERVICES_DB_USER}:${process.env.POSTGRES_SERVICES_DB_PASSWD}@${process.env.POSTGRES_SERVICES_DB_HOST}:${process.env.POSTGRES_SERVICES_DB_PORT}/${process.env.POSTGRES_SERVICES_DB_NAME}`, {
     dialect: 'postgres',
     dialectOptions: {
         ssl: {
