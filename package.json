@@ -1,0 +1,28 @@
+{
+  "name": "obook",
+  "version": "1.0.0",
+  "description": "orderbook",
+  "main": "live_data_service.js",
+  "dependencies": {
+    "ccxws": "^0.43.0",
+    "msgpack": "^1.0.3",
+    "pg": "^8.5.1",
+    "zeromq": "^5.2.0",
+    "zerorpc": "^0.9.8",
+    "sequelize": "^6.6.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tguinot/obook.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tguinot/obook/issues"
+  },
+  "homepage": "https://github.com/tguinot/obook#readme"
+}
