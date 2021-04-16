@@ -1,6 +1,6 @@
 module.exports = {
     apps : [{
-      name: "liveDataService",
+      name: "Live Data Service",
       script: "./live_data_service.js",
       env: {
         NODE_ENV: "development",
