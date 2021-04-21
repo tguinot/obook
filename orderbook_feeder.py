@@ -105,22 +105,34 @@ class OrderbookFeeder(object):
             self.writer.clean_top_bid()
             self.writer.clean_top_ask()
             self.circle_counter = 0
-        for bid in bids:
-            if update.get('sequenceId') == 0:
-                print("Inserting in {} REST bid: {}@{}".format(self.shm, str(bid[1]), str(bid[0])))
-                self.writer.set_bid_quantity_at(str(bid[1]), str(bid[0]))
-            else:
-                #print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
-                self.writer.set_bid_quantity_at(bid['size'], bid['price'])
-            self.circle_counter += 1
-        for ask in asks:
-            if update.get('sequenceId') == 0:
-                print("Inserting in {} REST ask: {}@{}".format(self.shm, str(ask[1]), str(ask[0])))
-                self.writer.set_ask_quantity_at(str(ask[1]), str(ask[0]))
-            else:
-                #print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
-                self.writer.set_ask_quantity_at(ask['size'], ask['price'])
-            self.circle_counter += 1
+        if len(bids) > 1:
+            quantities = [str(bid[1]) for bid in bids] if update.get('sequenceId') == 0 else [bid['size'] for bid in bids]
+            prices = [str(bid[0]) for bid in bids] if update.get('sequenceId') == 0 else [bid['price'] for bid in bids]
+            self.writer.set_bid_quantities_at(quantities, prices)
+            self.circle_counter += len(bids)
+        else:
+            for bid in bids:
+                if update.get('sequenceId') == 0:
+                    print("Inserting in {} REST bid: {}@{}".format(self.shm, str(bid[1]), str(bid[0])))
+                    self.writer.set_bid_quantity_at(str(bid[1]), str(bid[0]))
+                else:
+                    #print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
+                    self.writer.set_bid_quantity_at(bid['size'], bid['price'])
+                self.circle_counter += 1
+        if len(asks) > 1:
+            quantities = [str(ask[1]) for ask in asks] if update.get('sequenceId') == 0 else [ask['size'] for ask in asks]
+            prices = [str(ask[0]) for ask in asks] if update.get('sequenceId') == 0 else [ask['price'] for ask in asks]
+            self.writer.set_ask_quantities_at(quantities, prices)
+            self.circle_counter += len(asks)
+        else:
+            for ask in asks:
+                if update.get('sequenceId') == 0:
+                    print("Inserting in {} REST ask: {}@{}".format(self.shm, str(ask[1]), str(ask[0])))
+                    self.writer.set_ask_quantity_at(str(ask[1]), str(ask[0]))
+                else:
+                    #print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
+                    self.writer.set_ask_quantity_at(ask['size'], ask['price'])
+                self.circle_counter += 1
 
         if not self.writer.is_sound() and (time.time() - self.start_time) > 4 :
             message = '[FEEDER] Incoherent ORDERBOOK: crossing detected, resetting' + self.shm
