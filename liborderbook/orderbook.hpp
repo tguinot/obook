@@ -54,6 +54,8 @@ class OrderbookWriter: public OrderbookReader {
     void clean_top_ask();
     void clean_top_bid();
     void set_quantity_at (order_side, number, number);
+    void set_quantity_at_no_lock (order_side, number, number);
     void py_set_quantity_at (order_side, base_number, base_number, base_number, base_number);
+    void py_set_quantities_at (order_side, boost::python::list, boost::python::list);
  };
 

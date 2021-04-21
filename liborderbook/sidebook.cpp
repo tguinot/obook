@@ -169,6 +169,13 @@ void SideBook::insert_ask(number new_price, number new_quantity) {
     }
 }
 
+void SideBook::insert_ask_no_lock(number new_price, number new_quantity) {
+    orderbook_entry_type to_insert = {new_price, new_quantity};
+
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_s);
+    insert_at_place(data, to_insert, loc);
+}
+
 void SideBook::insert_bid(number new_price, number new_quantity) {
     orderbook_entry_type to_insert = {new_price, new_quantity};
 
@@ -179,9 +186,17 @@ void SideBook::insert_bid(number new_price, number new_quantity) {
     
     sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
     insert_at_place(data, to_insert, loc);
+
     if (!acquired) {
         std::cout << "Unable to acquire memory in insert_bid" << std::endl;
     } else {
         lock.unlock();
     }
+}
+
+void SideBook::insert_bid_no_lock(number new_price, number new_quantity) {
+    orderbook_entry_type to_insert = {new_price, new_quantity};
+
+    sidebook_content::iterator loc = std::lower_bound<sidebook_content::iterator, orderbook_entry_type>(data->begin(), data->end(), to_insert, compare_b);
+    insert_at_place(data, to_insert, loc);
 }

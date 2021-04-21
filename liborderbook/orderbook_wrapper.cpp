@@ -31,5 +31,6 @@ BOOST_PYTHON_MODULE(orderbook_wrapper)
         .def("bids_nonce", &OrderbookWriter::py_bids_nonce)
         .def("asks_nonce", &OrderbookWriter::py_asks_nonce)
         .def("first_price", &OrderbookWriter::py_first_price)
-        .def("set_quantity_at", &OrderbookWriter::py_set_quantity_at);
+        .def("set_quantity_at", &OrderbookWriter::py_set_quantity_at)
+        .def("set_quantities_at", &OrderbookWriter::py_set_quantities_at);
 }

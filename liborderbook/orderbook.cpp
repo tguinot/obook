@@ -82,7 +82,13 @@ void OrderbookWriter::set_quantity_at (order_side side, number new_quantity, num
 
   //std::cout << "Time is when starting to set quantity is " << tm.time_of_day().total_microseconds() << std::endl;
   //std::cout << "Time is when finishing to set quantity is " << um.time_of_day().total_microseconds() << std::endl;
+}
 
+void OrderbookWriter::set_quantity_at_no_lock (order_side side, number new_quantity, number new_price) {  
+  if (side == ASK)
+    asks->insert_ask_no_lock(new_price, new_quantity);
+  else if (side == BID)
+    bids->insert_bid_no_lock(new_price, new_quantity);
 }
 
 void OrderbookWriter::init_shm(std::string path) {

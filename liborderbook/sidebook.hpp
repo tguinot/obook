@@ -71,7 +71,9 @@ class SideBook {
         boost::python::list py_extract_to_limit(int);
 
         void insert_ask(number, number);
+        void insert_ask_no_lock(number, number);
         void insert_bid(number, number);
+        void insert_bid_no_lock(number, number);
         void clean_first_limit();
         
         void reset_content();

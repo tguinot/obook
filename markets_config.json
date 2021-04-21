@@ -19,6 +19,13 @@
             "base": "BTC",
             "quote": "PERP",
             "type": "futures"
+        },
+        {
+            "exchange": "FTX",
+            "id": "ETH-PERP",
+            "base": "ETH",
+            "quote": "PERP",
+            "type": "futures"
         }
     ]
 }

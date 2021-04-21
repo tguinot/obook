@@ -91,3 +91,21 @@ class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter, CommonOrderBookClass)
 		frac_price = Fraction(price)
 		frac_quantity = Fraction(quantity)
 		return super().set_quantity_at(False, frac_quantity.numerator, frac_quantity.denominator, frac_price.numerator, frac_price.denominator)
+
+	def set_ask_quantities_at(self, quantities, prices):
+		frac_quantities, frac_prices = [], []
+		for quantity, price in zip(quantities, prices):
+			frac_price = Fraction(price)
+			frac_quantity = Fraction(quantity)
+			frac_quantities.append((frac_quantity.numerator, frac_quantity.denominator))
+			frac_prices.append((frac_price.numerator, frac_price.denominator))
+		return super().set_quantities_at(False, frac_quantities,  frac_prices)
+
+	def set_bid_quantities_at(self, quantities, prices):
+		frac_quantities, frac_prices = [], []
+		for quantity, price in zip(quantities, prices):
+			frac_price = Fraction(price)
+			frac_quantity = Fraction(quantity)
+			frac_quantities.append((frac_quantity.numerator, frac_quantity.denominator))
+			frac_prices.append((frac_price.numerator, frac_price.denominator))
+		return super().set_quantities_at(True, frac_quantities,  frac_prices)

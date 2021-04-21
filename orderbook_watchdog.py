@@ -5,7 +5,7 @@ import os
 from slack_lib import send_slack_alert
 import zmq
 
-orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}]
+orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'}]
 
 orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]
 

@@ -28,6 +28,41 @@ void OrderbookWriter::py_set_quantity_at (order_side side, base_number new_qty_n
   set_quantity_at(side, number(new_qty_n, new_qty_d), number(new_price_n, new_price_d));
 }
 
+void OrderbookWriter::py_set_quantities_at (order_side side, py::list new_qties, py::list new_prices) {
+  named_upgradable_mutex *mutex;
+
+  if (side == true)
+    mutex = bids->mutex;
+  else
+    mutex = asks->mutex;
+
+  scoped_lock<named_upgradable_mutex> lock(*mutex, defer_lock);
+  ptime locktime(microsec_clock::local_time());
+  locktime = locktime + milliseconds(75);
+  
+  bool acquired = lock.timed_lock(locktime);
+
+  for (int i = 0; i < len(new_qties); ++i){
+    py::tuple quantity = py::extract<py::tuple>(new_qties[i]);
+    py::tuple price = py::extract<py::tuple>(new_prices[i]);
+
+    long long new_qty_n = py::extract<long long>(quantity[0]);
+    long long new_qty_d = py::extract<long long>(quantity[1]);
+
+    long long new_price_n = py::extract<long long>(price[0]);
+    long long new_price_d = py::extract<long long>(price[1]);
+
+    set_quantity_at_no_lock(side, number(new_qty_n, new_qty_d), number(new_price_n, new_price_d));
+  }
+
+  if (!acquired) {
+        std::cout << "Unable to acquire memory in insert_ask" << std::endl;
+    } else {
+        lock.unlock();
+    }
+  
+}
+
 py::list OrderbookReader::py_bids_up_to_volume(base_number n, base_number d) {
   return _py_side_up_to_volume_(bids, number(n, d));
 }
