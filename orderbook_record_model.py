@@ -1,13 +1,14 @@
 import datetime
 from liborderbook.orderbook_helper import RtOrderbookReader
 import time
-import sys
 import requests
 import os
 from decimal import Decimal
 from pprint import pprint
 import requests
-from models import OrderbookRecord, Currency, Exchange, Service, Instrument
+import signal
+import sys
+from models import OrderbookRecord, Currency, Exchange, Service, Instrument, close_db_conn, close_services_db_conn
 import umsgpack
 import copy
 
@@ -71,9 +72,15 @@ def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, as
 	snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, ask_sizes=asks_sizes, ask_prices=asks_prices, bid_sizes=bids_sizes, bid_prices=bids_prices, timestamp=ts, kind=kind)
 	snap.save()
 
+def sigint_handler(sig, frame):
+    print('Closing db_connections')
+    close_db_conn()
+    close_services_db_conn()
+    sys.exit(0)
+
 if __name__ == "__main__":
 	print(f"Starting taking snapshots on {exchange_name}:{instrument} @ {shm_path}")
-
+	signal.signal(signal.SIGINT, sigint_handler)
 	while True:
 		ts = datetime.datetime.utcnow()
 

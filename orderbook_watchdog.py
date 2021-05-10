@@ -4,6 +4,10 @@ import subprocess
 import os
 from slack_lib import send_slack_alert
 import zmq
+import signal
+import sys
+from models import close_db_conn, close_services_db_conn
+
 
 orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'}]
 
@@ -15,7 +19,15 @@ orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument
 nonces = {}
 staleness = {}
 
+def sigint_handler(sig, frame):
+    print('Closing db_connections')
+    close_db_conn()
+    close_services_db_conn()
+    sys.exit(0)
+
 send_slack_alert("#mm-alerts", "(Re)Starting orderbook watchdog")
+signal.signal(signal.SIGINT, sigint_handler)
+
 while True:
     for reader in orderbook_readers:
         bids_nonce = reader.bids_nonce()
