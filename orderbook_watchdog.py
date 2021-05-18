@@ -68,7 +68,7 @@ while True:
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             if asks_nonce == reader.asks_nonce() or bids_nonce == reader.bids_nonce():
-                message = f"[WATCHDOG] Orderbook still stale, restarting data services and {reader.exchange+reader.instrument}"
+                message = f"[WATCHDOG] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting data services and {reader.exchange+reader.instrument}"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
                 subprocess.run(["pm2", "restart", "Live Data Service"])
