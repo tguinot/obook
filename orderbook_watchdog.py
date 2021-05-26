@@ -11,7 +11,17 @@ from models import close_db_conn, close_services_db_conn
 
 orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'}]
 
-orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]
+try:
+    orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]
+except Exception as e:
+    message = f"[WATCHDOG] Failed to intialize orderbook ({e}) restarting all services"
+    print(message)
+    send_slack_alert("#mm-alerts", message)
+    subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+    print('Closing db_connections')
+    close_db_conn()
+    close_services_db_conn()
+    sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
 
@@ -55,27 +65,19 @@ while True:
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             except Exception as e:
-                message = f"[WATCHDOG] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting data services"
+                message = f"[WATCHDOG] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["pm2", "restart", "Live Data Service "])
-                subprocess.run(["pm2", "restart", "Orderbook BinanceUSD BTCUSD"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX BTC/USD"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX BTC-PERP"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX ETH-PERP"])
+                subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             if asks_nonce == reader.asks_nonce() or bids_nonce == reader.bids_nonce():
-                message = f"[WATCHDOG] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting data services and {reader.exchange+reader.instrument}"
+                message = f"[WATCHDOG] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["pm2", "restart", "Live Data Service"])
-                subprocess.run(["pm2", "restart", "Orderbook BinanceUSD BTCUSD"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX BTC/USD"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX BTC-PERP"])
-                subprocess.run(["pm2", "restart", "Orderbook FTX ETH-PERP"])
+                subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
