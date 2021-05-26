@@ -9,7 +9,8 @@ import sys
 from models import close_db_conn, close_services_db_conn
 
 
-orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'}]
+orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'},
+                      {'exchange': 'FTX', 'instrument': 'BNB-PERP'}, {'exchange': 'FTX', 'instrument': 'XRP-PERP'}, {'exchange': 'FTX', 'instrument': 'LTC-PERP'}]
 
 try:
     orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]

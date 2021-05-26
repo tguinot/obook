@@ -4,28 +4,56 @@
             "exchange": "BinanceUS",
             "id": "BTCUSD",
             "base": "BTC",
-            "quote": "USD"
+            "quote": "USD",
+            "record": true
         },
         
         {
             "exchange": "FTX",
             "id": "BTC/USD",
             "base": "BTC",
-            "quote": "USD"
+            "quote": "USD",
+            "record": true
         },
         {
             "exchange": "FTX",
             "id": "BTC-PERP",
             "base": "BTC",
             "quote": "PERP",
-            "type": "futures"
+            "type": "futures",
+            "record": true
         },
         {
             "exchange": "FTX",
             "id": "ETH-PERP",
             "base": "ETH",
             "quote": "PERP",
-            "type": "futures"
+            "type": "futures",
+            "record": true
+        },
+        {
+            "exchange": "FTX",
+            "id": "XRP-PERP",
+            "base": "XRP",
+            "quote": "PERP",
+            "type": "futures",
+            "record": true
+        },
+        {
+            "exchange": "FTX",
+            "id": "BNB-PERP",
+            "base": "BNB",
+            "quote": "PERP",
+            "type": "futures",
+            "record": true
+        },
+        {
+            "exchange": "FTX",
+            "id": "LTC-PERP",
+            "base": "LTC",
+            "quote": "PERP",
+            "type": "futures",
+            "record": true
         }
     ]
 }

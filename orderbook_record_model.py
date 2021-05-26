@@ -10,14 +10,18 @@ import signal
 import sys
 from models import OrderbookRecord, Currency, Exchange, Service, Instrument, close_db_conn, close_services_db_conn
 import umsgpack
+from db_inquirer import DatabaseQuerier
 import copy
 
 
 target_exchange, target_instrument = sys.argv[1], sys.argv[2]
 
-orderbook_service_details = Service.get((Service.name == 'OrderbookFeeder') & (Service.exchange == target_exchange) & (Service.instrument == target_instrument))
+db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
+orderbook_service_details = db_service_interface.find_service('OrderbookFeeder', instrument=target_instrument, exchange=target_exchange) 
 
-exchange_name, instrument, shm_path = target_exchange, target_instrument, orderbook_service_details.address
+#orderbook_service_details = Service.get((Service.name == 'OrderbookFeeder') & (Service.exchange == target_exchange) & (Service.instrument == target_instrument))
+
+exchange_name, instrument, shm_path = target_exchange, target_instrument, orderbook_service_details.get('address')
 obh_a = RtOrderbookReader(shm_path)
 
 exchange = Exchange.get(Exchange.name == target_exchange)
