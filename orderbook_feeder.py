@@ -7,8 +7,9 @@ import ccxt
 import json
 from pprint import pprint
 import time
+from db_inquirer import DatabaseQuerier
 import signal
-from models import Service, Instrument
+from models import Service, Instrument, close_db_conn, close_services_db_conn
 import os
 import universal_listenner
 import threading
@@ -153,12 +154,12 @@ class OrderbookFeeder(object):
 
 
 def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
-    feeder = OrderbookFeeder(stream_port, shm_name, exchange, ccxt_instrument)
     print("Launching orderbook feeder for", exchange, ccxt_instrument.name, "listenning on port", stream_port)
+    feeder = OrderbookFeeder(stream_port, shm_name, exchange, ccxt_instrument)
 
     def term_signal_handler(sig, frame):
-        print("Stopping feeder")
         feeder.stop()
+        print("Stopping feeder")
         print("Releasing lock if needed...")
         if feeder.lock.locked():
             feeder.lock.release()
@@ -171,12 +172,20 @@ def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
 
 if __name__ == "__main__":
     print("Starting orderbook feeder process")
-    exchange, market = sys.argv[1], sys.argv[2]
-    stream = Service.get((Service.exchange == exchange) & (Service.instrument == market) & (Service.name == 'OrderbookDataStream'))
-    exchange_instrument = Instrument.get((Instrument.exchange_name == exchange) & (Instrument.name == market))
+    db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
+    exchange_name, instrument_name = sys.argv[1], sys.argv[2]
+    stream = db_service_interface.find_service('OrderbookDataStream', instrument=instrument_name, exchange=exchange_name)
+    
+    exchange_instrument = Instrument.get((Instrument.exchange_name == exchange_name) & (Instrument.name == instrument_name))
     ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
-    shm_name = f"/shm_{exchange}_" + '%08x' % random.randrange(16**8)
+    
+    shm_name = f"/shm_{exchange_name}_" + '%08x' % random.randrange(16**8)
 
-    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == market) & (Service.exchange == exchange))
+    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == instrument_name) & (Service.exchange == exchange_name))
     query.execute()
-    launch_feeder(stream.port, shm_name, exchange, ccxt_instrument)
+
+    close_db_conn()
+    close_services_db_conn()
+
+    launch_feeder(stream.get('port'), shm_name, exchange_name, ccxt_instrument)
+    
