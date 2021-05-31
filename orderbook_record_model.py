@@ -55,26 +55,21 @@ def snapshot_orderbook(obh):
 	if len(bids) > 0:
 		mini, maxi = bids[-1][0], bids[0][0]
 		for price, size in bids:
-			bids_prices.append(price)
-			bids_sizes.append(size)
+			bids_prices.append(str(price))
+			bids_sizes.append(str(size))
 			#print("Bid {}@{}".format(size, price))
 			if price < mini or price > maxi:
 				print("ORDERBOOK BIDS INCOHERENT:", bids)
 	if len(asks) > 0:
 		maxi, mini = asks[-1][0], asks[0][0]
 		for price, size in asks:
-			asks_prices.append(price)
-			asks_sizes.append(size)
+			asks_prices.append(str(price))
+			asks_sizes.append(str(size))
 			#print("Ask {}@{}".format(size, price))
 			if price < mini or price > maxi:
 				print("ORDERBOOK ASKS INCOHERENT:", asks)
 
 	return bids_sizes, bids_prices, asks_sizes, asks_prices
-
-
-def save_snapshot(base, quote, exchange, bids_sizes, bids_prices, asks_sizes, asks_prices, ts, kind):
-	snap = OrderbookRecord(base=base, quote=quote, exchange=exchange, ask_sizes=asks_sizes, ask_prices=asks_prices, bid_sizes=bids_sizes, bid_prices=bids_prices, timestamp=ts, kind=kind)
-	snap.save()
 
 def sigint_handler(sig, frame):
     print('Closing db_connections')
@@ -86,10 +81,11 @@ if __name__ == "__main__":
 	print(f"Starting taking snapshots on {exchange_name}:{instrument} @ {shm_path}")
 	signal.signal(signal.SIGINT, sigint_handler)
 	while True:
-		ts = datetime.datetime.utcnow()
+		ts = datetime.datetime.utcnow().timestamp()
 
 		bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a = snapshot_orderbook(obh_a)
-		save_snapshot(base, quote, exchange, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts, db_instrument.kind)
+		db_service_interface.save_snapshot(target_exchange, target_instrument, bids_sizes_a, bids_prices_a, asks_sizes_a, asks_prices_a, ts)
 
 		time.sleep(0.4)
+
 	print("Leaving the for loop")
