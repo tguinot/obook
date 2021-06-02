@@ -6,7 +6,6 @@ from slack_lib import send_slack_alert
 import zmq
 import signal
 import sys
-from models import close_db_conn, close_services_db_conn
 
 
 orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'},
@@ -19,9 +18,6 @@ except Exception as e:
     print(message)
     send_slack_alert("#mm-alerts", message)
     subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
-    print('Closing db_connections')
-    close_db_conn()
-    close_services_db_conn()
     sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
@@ -31,9 +27,6 @@ nonces = {}
 staleness = {}
 
 def sigint_handler(sig, frame):
-    print('Closing db_connections')
-    close_db_conn()
-    close_services_db_conn()
     sys.exit(0)
 
 send_slack_alert("#mm-alerts", "(Re)Starting orderbook watchdog")

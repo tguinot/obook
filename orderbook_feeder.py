@@ -62,21 +62,21 @@ class OrderbookFeeder(object):
                     initial_book = self.fetch_orderbook_from_rest()
                     self.queue = [initial_book] + self.queue
                     self.starting = False
-                    print("Enough cached data, inserting...")
+                    print("Enough cached data, inserting.")
             if 'sequenceId' in update and update['sequenceId'] > 0:
                 self.queue.sort(key=lambda x: x['sequenceId'])
             else:
                 self.queue.sort(key=lambda x: x['server_received'])
         except Exception as e:
-            print("Failed to update queue with")
+            print(f"Failed to update queue ({e}) with:")
             pprint(update)
-            print(e)
         finally:
             self.lock.release()
 
     def fetch_orderbook_from_rest(self):
-        print("Fetching full orderbook from REST interface", self.ccxt_instrument.name)
-        raw_ob = self.rest_client.fetch_l2_order_book(self.ccxt_instrument.name)
+        print("Fetching full orderbook from REST interface", self.ccxt_instrument.get('name'))
+        raw_ob = self.rest_client.fetch_l2_order_book(self.ccxt_instrument.get('name'))
+        raw_ob['server_received'] = self.rest_client.milliseconds()
         raw_ob['sequenceId'] = 0
         return raw_ob
 
@@ -154,7 +154,7 @@ class OrderbookFeeder(object):
 
 
 def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
-    print("Launching orderbook feeder for", exchange, ccxt_instrument.name, "listenning on port", stream_port)
+    print("Launching orderbook feeder for", exchange, ccxt_instrument.get('name'), "listenning on port", stream_port)
     feeder = OrderbookFeeder(stream_port, shm_name, exchange, ccxt_instrument)
 
     def term_signal_handler(sig, frame):
@@ -176,13 +176,19 @@ if __name__ == "__main__":
     exchange_name, instrument_name = sys.argv[1], sys.argv[2]
     stream = db_service_interface.find_service('OrderbookDataStream', instrument=instrument_name, exchange=exchange_name)
     
-    exchange_instrument = Instrument.get((Instrument.exchange_name == exchange_name) & (Instrument.name == instrument_name))
-    ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
-    
+    # exchange_instrument = Instrument.get((Instrument.exchange_name == exchange_name) & (Instrument.name == instrument_name))
+    exchange_instrument = db_service_interface.find_instrument(instrument_name, exchange_name)
+
+    # ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
+    ccxt_instrument = db_service_interface.find_ccxt_instrument(exchange_name, instrument_name)
+
     shm_name = f"/shm_{exchange_name}_" + '%08x' % random.randrange(16**8)
 
-    query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == instrument_name) & (Service.exchange == exchange_name))
-    query.execute()
+    #query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == instrument_name) & (Service.exchange == exchange_name))
+    #query.execute()
+
+    print("Updating feeder service for", exchange_name, instrument_name, "at", shm_name)
+    db_service_interface.update_service_address(shm_name, 'OrderbookFeeder', exchange_name, instrument_name)
 
     close_db_conn()
     close_services_db_conn()
