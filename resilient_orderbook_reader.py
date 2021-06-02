@@ -1,20 +1,23 @@
 from liborderbook.orderbook_helper import RtOrderbookReader
-from db_inquirer import DatabaseQuerier
+from local_models import Service
 
 class ResilientOrderbookReader(RtOrderbookReader):
 
-    def __init__(self, exchange, instrument):
+    def __init__(self, exchange, instrument, db_interface=None):
+        # if not db_interface:
+        #     self.db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
+        # else:
+        #     self.db_service_interface = db_interface
         self.exchange, self.instrument = exchange, instrument
         shm = self.get_orderbook_shm()
         self.shm = shm
+        print("Initialising resilient orderbook reader on SHM", shm)
         super().__init__(shm)
 
     def get_orderbook_shm(self):
-        db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
-        orderbook_details = db_service_interface.find_service('OrderbookFeeder', instrument=self.instrument, exchange=self.exchange) 
-        #orderbook_details = Service.get((Service.name == 'OrderbookFeeder') & (Service.exchange == self.exchange) & (Service.instrument == self.instrument))
-        db_service_interface.close()
-        return orderbook_details.get('address')
+        #orderbook_details = self.db_service_interface.find_service('OrderbookFeeder', instrument=self.instrument, exchange=self.exchange) 
+        orderbook_details = Service.get((Service.name == 'OrderbookFeeder') & (Service.exchange == self.exchange) & (Service.instrument == self.instrument))
+        return orderbook_details.address
 
     def refresh_orderbook(self):
         shm = self.get_orderbook_shm()

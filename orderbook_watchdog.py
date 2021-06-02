@@ -6,18 +6,21 @@ from slack_lib import send_slack_alert
 import zmq
 import signal
 import sys
+#from db_inquirer import DatabaseQuerier
+
 
 
 orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'},
                       {'exchange': 'FTX', 'instrument': 'BNB-PERP'}, {'exchange': 'FTX', 'instrument': 'XRP-PERP'}, {'exchange': 'FTX', 'instrument': 'LTC-PERP'}]
 
+#db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
 try:
-    orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument']) for prof in orderbook_profiles]
+    orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  for prof in orderbook_profiles]
 except Exception as e:
     message = f"[WATCHDOG] Failed to intialize orderbook ({e}) restarting all services"
     print(message)
     send_slack_alert("#mm-alerts", message)
-    subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+    #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
     sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
@@ -33,6 +36,7 @@ send_slack_alert("#mm-alerts", "(Re)Starting orderbook watchdog")
 signal.signal(signal.SIGINT, sigint_handler)
 
 while True:
+    print("Starting watchdog process")
     for reader in orderbook_readers:
         bids_nonce = reader.bids_nonce()
         print("Got bids nonce", bids_nonce, "from", reader.shm, "for", reader.instrument)

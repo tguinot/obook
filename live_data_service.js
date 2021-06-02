@@ -6,14 +6,19 @@ const { Sequelize, DataTypes } = require('sequelize');
 var fs = require('fs');
 const { Level2Update } = require("ccxws");
 
-const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_SERVICES_DB_USER}:${process.env.POSTGRES_SERVICES_DB_PASSWD}@${process.env.POSTGRES_SERVICES_DB_HOST}:${process.env.POSTGRES_SERVICES_DB_PORT}/${process.env.POSTGRES_SERVICES_DB_NAME}`, {
-    dialect: 'postgres',
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false
-        }
-    }})
+// const sequelize = new Sequelize(`postgres://${process.env.POSTGRES_SERVICES_DB_USER}:${process.env.POSTGRES_SERVICES_DB_PASSWD}@${process.env.POSTGRES_SERVICES_DB_HOST}:${process.env.POSTGRES_SERVICES_DB_PORT}/${process.env.POSTGRES_SERVICES_DB_NAME}`, {
+//     dialect: 'postgres',
+//     dialectOptions: {
+//         ssl: {
+//             require: true,
+//             rejectUnauthorized: false
+//         }
+//     }})
+
+const sequelize = new Sequelize({
+        dialect: 'sqlite',
+        storage: `${process.env.HOME}/services.db`
+      });
 const markets_config = JSON.parse(fs.readFileSync('markets_config.json', 'utf8'));
 
 const Service = sequelize.define('Service', {
