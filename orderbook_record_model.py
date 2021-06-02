@@ -8,8 +8,8 @@ from pprint import pprint
 import requests
 import signal
 import sys
-from models import OrderbookRecord, Exchange, close_db_conn
-from local_models import Service, Instrument
+from models import OrderbookRecord, Exchange, Instrument, close_db_conn
+from local_models import Service
 import umsgpack
 import copy
 
