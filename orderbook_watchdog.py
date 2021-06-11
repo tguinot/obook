@@ -14,14 +14,15 @@ orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'excha
                       {'exchange': 'FTX', 'instrument': 'BNB-PERP'}, {'exchange': 'FTX', 'instrument': 'XRP-PERP'}, {'exchange': 'FTX', 'instrument': 'LTC-PERP'}]
 
 #db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
-try:
-    orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  for prof in orderbook_profiles]
-except Exception as e:
-    message = f"[WATCHDOG] Failed to intialize orderbook ({e}) restarting all services"
-    print(message)
-    send_slack_alert("#mm-alerts", message)
-    #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
-    sys.exit(0)
+for prof in orderbook_profiles:
+    try:
+        orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  ]
+    except Exception as e:
+        message = f"[WATCHDOG] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting all services"
+        print(message)
+        send_slack_alert("#mm-alerts", message)
+        #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+        sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
 
