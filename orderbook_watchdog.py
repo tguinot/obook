@@ -18,10 +18,11 @@ for prof in orderbook_profiles:
     try:
         orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  ]
     except Exception as e:
-        message = f"[WATCHDOG] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting all services"
+        message = f"[WATCHDOG] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting data services"
         print(message)
         send_slack_alert("#mm-alerts", message)
         #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+        subprocess.run(["pm2", "restart", "Live Data Service"])
         sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
@@ -67,7 +68,8 @@ while True:
                 message = f"[WATCHDOG] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+                subprocess.run(["pm2", "restart", "Live Data Service"])
+                #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
@@ -76,7 +78,8 @@ while True:
                 message = f"[WATCHDOG] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
+                subprocess.run(["pm2", "restart", "Live Data Service"])
+                #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
