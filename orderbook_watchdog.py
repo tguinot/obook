@@ -18,7 +18,7 @@ for prof in orderbook_profiles:
     try:
         orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  ]
     except Exception as e:
-        message = f"[WATCHDOG] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting data services"
+        message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting data services"
         print(message)
         send_slack_alert("#mm-alerts", message)
         #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
@@ -57,7 +57,7 @@ while True:
             staleness[reader.exchange+reader.instrument+'ask'] = 0
 
         if staleness[reader.exchange+reader.instrument+'ask'] > 1000 or staleness[reader.exchange+reader.instrument+'bid'] > 1000:
-            message = f"[WATCHDOG] Orderbook is stale, refreshing {reader.exchange+reader.instrument}"
+            message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook is stale, refreshing {reader.exchange+reader.instrument}"
             print(message)
             send_slack_alert("#mm-alerts", message)
             try:
@@ -65,7 +65,7 @@ while True:
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             except Exception as e:
-                message = f"[WATCHDOG] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
+                message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')} ] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
                 subprocess.run(["pm2", "restart", "Live Data Service"])
@@ -75,7 +75,7 @@ while True:
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
                 staleness[reader.exchange+reader.instrument+'bid'] = 0
             if asks_nonce == reader.asks_nonce() or bids_nonce == reader.bids_nonce():
-                message = f"[WATCHDOG] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
+                message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
                 subprocess.run(["pm2", "restart", "Live Data Service"])
@@ -88,7 +88,7 @@ while True:
         bids, asks = reader.snapshot_whole()
         print("Got whole snapshot from", reader.shm, "for", reader.instrument, "bid length", len(bids), "ask length", len(asks))
         if len(bids) and len(asks) and bids[0] >= asks[0]:
-            message = f"[WATCHDOG] Orderbook content crossed {reader.exchange+reader.instrument},  BID: {bids[0]}, ASK: {asks[0]}"
+            message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook content crossed {reader.exchange+reader.instrument},  BID: {bids[0]}, ASK: {asks[0]}"
             print(message)
 
         nonces[reader.exchange+reader.instrument+'bid'] = bids_nonce
