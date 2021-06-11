@@ -22,6 +22,7 @@ def dec(n, d):
 
 class OrderbookFeeder(object):
     def __init__(self, stream_port, shm, exchange, ccxt_instrument):
+        print("Instanciating orderbook writer")
         self.writer = RtOrderbookWriter(shm)
         self.shm = shm
         self.restart_listenning()
@@ -39,6 +40,7 @@ class OrderbookFeeder(object):
         print(f"Starting up Feed Listenner for {exchange} listenning to stream port {stream_port} writing to {shm}")
     
     def run(self):
+        print("Running orderbook feeder from now")
         self.listen_thread = threading.Thread(target=self.lstr.run)
         self.listen_thread.start()
 
@@ -166,7 +168,7 @@ def launch_feeder(stream_port, shm_name, exchange, ccxt_instrument):
 
     signal.signal(signal.SIGTERM, term_signal_handler)
 
-
+    print("Finished setting up signal handler")
     feeder.run()
     feeder.insert_thread.join()
 
@@ -183,7 +185,7 @@ if __name__ == "__main__":
 
     ccxt_instrument = Instrument.get((Instrument.exchange_name == 'ccxt') & (Instrument.base == exchange_instrument.base) & (Instrument.quote == exchange_instrument.quote) & (Instrument.kind == exchange_instrument.kind))
     #ccxt_instrument = db_service_interface.find_ccxt_instrument(exchange_name, instrument_name)
-
+    print("Fetched data from database. Updating SHM name in Database")
     shm_name = f"/shm_{exchange_name}_" + '%08x' % random.randrange(16**8)
 
     query = Service.update(address=shm_name).where((Service.name == 'OrderbookFeeder') & (Service.instrument == instrument_name) & (Service.exchange == exchange_name))
