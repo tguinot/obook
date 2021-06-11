@@ -2,6 +2,7 @@ module.exports = {
     apps : [{
       name: "Recorder FTX BTC/USD",
       script: "python3 -u orderbook_record_model.py FTX \"BTC/USD\"",
+      time: true,
       env: {
         NODE_ENV: "development",
         SHARED_DB_USER: "recorder",

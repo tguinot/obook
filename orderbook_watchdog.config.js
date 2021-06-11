@@ -2,6 +2,7 @@ module.exports = {
     apps : [{
       name: "Orderbook WatchDog",
       script: "python3 -u orderbook_watchdog.py",
+      time: true,
       env: {
         NODE_ENV: "development",
         POSTGRES_SERVICES_DB_USER: "watchdog",
