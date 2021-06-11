@@ -35,8 +35,8 @@ def sigint_handler(sig, frame):
 send_slack_alert("#mm-alerts", "(Re)Starting orderbook watchdog")
 signal.signal(signal.SIGINT, sigint_handler)
 
+print("Starting watchdog process")
 while True:
-    print("Starting watchdog process")
     for reader in orderbook_readers:
         bids_nonce = reader.bids_nonce()
         print("Got bids nonce", bids_nonce, "from", reader.shm, "for", reader.instrument)

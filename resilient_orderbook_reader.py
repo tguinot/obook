@@ -11,7 +11,7 @@ class ResilientOrderbookReader(RtOrderbookReader):
         self.exchange, self.instrument = exchange, instrument
         shm = self.get_orderbook_shm()
         self.shm = shm
-        print("Initialising resilient orderbook reader on SHM", shm)
+        print(f"Initialising resilient orderbook reader for {exchange} {instrument} on SHM {shm}")
         super().__init__(shm)
 
     def get_orderbook_shm(self):
