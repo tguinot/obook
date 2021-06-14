@@ -22,7 +22,7 @@ for prof in orderbook_profiles:
         print(message)
         send_slack_alert("#mm-alerts", message)
         #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
-        subprocess.run(["pm2", "restart", "Live Data Service"])
+        print(subprocess.run(["pm2", "restart", "Live Data Service"]))
         sys.exit(0)
 
 # The nonce is like a version number or update number  like 45980 that you can use to track the evolution of updates
@@ -68,7 +68,7 @@ while True:
                 message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')} ] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["pm2", "restart", "Live Data Service"])
+                print(subprocess.run(["pm2", "restart", "Live Data Service"]))
                 #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
@@ -78,7 +78,7 @@ while True:
                 message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
                 print(message)
                 send_slack_alert("#mm-alerts", message)
-                subprocess.run(["pm2", "restart", "Live Data Service"])
+                print(subprocess.run(["pm2", "restart", "Live Data Service"]))
                 #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
                 reader.refresh_orderbook()
