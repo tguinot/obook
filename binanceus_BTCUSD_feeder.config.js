@@ -1,7 +1,7 @@
 module.exports = {
     apps : [{
       name: "Orderbook BinanceUS BTCUSD",
-      script: "python3 -u orderbook_feeder.py BinanceUS BTCUSD",
+      script: "python3 -u $HOME/code/obook/orderbook_feeder.py BinanceUS BTCUSD",
       time: true,
       env: {
         NODE_ENV: "development",
