@@ -59,7 +59,7 @@ while True:
         if staleness[reader.exchange+reader.instrument+'ask'] > 1000 or staleness[reader.exchange+reader.instrument+'bid'] > 1000:
             message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook is stale, refreshing {reader.exchange+reader.instrument}"
             print(message)
-            send_slack_alert("#mm-alerts", message)
+            send_slack_alert("#mm-logs", message)
             try:
                 reader.refresh_orderbook()
                 staleness[reader.exchange+reader.instrument+'ask'] = 0
@@ -67,7 +67,7 @@ while True:
             except Exception as e:
                 message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')} ] Failed to refresh orderbook: {reader.exchange+reader.instrument} ({e}) restarting all services"
                 print(message)
-                send_slack_alert("#mm-alerts", message)
+                send_slack_alert("#mm-logs", message)
                 print(subprocess.run(["pm2", "restart", "Live Data Service"]))
                 #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
@@ -77,7 +77,7 @@ while True:
             if asks_nonce == reader.asks_nonce() or bids_nonce == reader.bids_nonce():
                 message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Orderbook still stale ({asks_nonce, reader.asks_nonce(), bids_nonce, reader.bids_nonce()}), restarting all services and {reader.exchange+reader.instrument}"
                 print(message)
-                send_slack_alert("#mm-alerts", message)
+                send_slack_alert("#mm-logs", message)
                 print(subprocess.run(["pm2", "restart", "Live Data Service"]))
                 #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
                 time.sleep(15)
