@@ -7,6 +7,22 @@
             "quote": "PERP",
             "type": "futures",
             "record": true
+        },
+        {
+            "exchange": "FTX",
+            "id": "ETH-PERP",
+            "base": "ETH",
+            "quote": "PERP",
+            "type": "futures",
+            "record": true
+        },
+        {
+            "exchange": "FTX",
+            "id": "LTC-PERP",
+            "base": "LTC",
+            "quote": "PERP",
+            "type": "futures",
+            "record": true
         }
     ],
 
@@ -25,14 +41,7 @@
             "quote": "USD",
             "record": true
         },
-        {
-            "exchange": "FTX",
-            "id": "ETH-PERP",
-            "base": "ETH",
-            "quote": "PERP",
-            "type": "futures",
-            "record": true
-        },
+        
         {
             "exchange": "FTX",
             "id": "XRP-PERP",
@@ -49,13 +58,6 @@
             "type": "futures",
             "record": true
         },
-        {
-            "exchange": "FTX",
-            "id": "LTC-PERP",
-            "base": "LTC",
-            "quote": "PERP",
-            "type": "futures",
-            "record": true
-        }
+        
     ]
 }
