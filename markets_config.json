@@ -57,7 +57,7 @@
             "quote": "PERP",
             "type": "futures",
             "record": true
-        },
+        }
         
     ]
 }
