@@ -1,26 +1,28 @@
 {   
     "all_markets" : [
         {
-            "exchange": "BinanceUS",
-            "id": "BTCUSD",
-            "base": "BTC",
-            "quote": "USD",
-            "record": true
-        },
-        
-        {
-            "exchange": "FTX",
-            "id": "BTC/USD",
-            "base": "BTC",
-            "quote": "USD",
-            "record": true
-        },
-        {
             "exchange": "FTX",
             "id": "BTC-PERP",
             "base": "BTC",
             "quote": "PERP",
             "type": "futures",
+            "record": true
+        }
+    ],
+
+    "unused_markets": [
+        {
+            "exchange": "BinanceUS",
+            "id": "BTCUSD",
+            "base": "BTC",
+            "quote": "USD",
+            "record": true
+        }, 
+        {
+            "exchange": "FTX",
+            "id": "BTC/USD",
+            "base": "BTC",
+            "quote": "USD",
             "record": true
         },
         {
