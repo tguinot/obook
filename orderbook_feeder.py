@@ -12,6 +12,7 @@ from local_models import Service, Instrument
 import signal
 import os
 import universal_listenner
+import datetime
 import threading
 from slack_lib import send_slack_alert
 from decimal import Decimal
@@ -98,16 +99,27 @@ class OrderbookFeeder(object):
             self.display_insert(update)
 
     def display_insert(self, update):
+        if len(self.writer.snapshot_asks(1)) > 0:
+            old_askprice, old_askqty = self.writer.snapshot_asks(1)[0]
+        else:
+            old_askprice, old_askqty =  Decimal(0), Decimal(0)
+
+        if len(self.writer.snapshot_bids(1)) > 0:
+            old_bidprice, old_bidqty = self.writer.snapshot_bids(1)[0]
+        else:
+            old_bidprice, old_bidqty = Decimal(0), Decimal(0)
+
         bids, asks = update['bids'], update['asks']
         if 'Binance' == self.exchange or update.get('sequenceId') == 0:
             print(f'Resetting content of Orderbook')
             self.writer.reset_content()
             print(f'Finished resetting content of Orderbook')
-        if self.circle_counter > 400:
-            print("Cleaning first entries of orderbook", dec(*self.writer.first_price(True)), dec(*self.writer.first_price(False)))
+        if self.circle_counter > 4000:
+            print("Cleaning first entries of orderbook", self.writer.first_price(True), self.writer.first_price(False))
             self.writer.clean_top_bid()
             self.writer.clean_top_ask()
             self.circle_counter = 0
+
         if len(bids) > 1:
             quantities = [str(bid[1]) for bid in bids] if update.get('sequenceId') == 0 else [bid['size'] for bid in bids]
             prices = [str(bid[0]) for bid in bids] if update.get('sequenceId') == 0 else [bid['price'] for bid in bids]
@@ -120,8 +132,12 @@ class OrderbookFeeder(object):
                     self.writer.set_bid_quantity_at(str(bid[1]), str(bid[0]))
                 else:
                     #print("Inserting {} in {} bid from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], bid['size'], bid['price']))
+                    #print("First bid price is", self.writer.first_price(True))
+                        
                     self.writer.set_bid_quantity_at(bid['size'], bid['price'])
                 self.circle_counter += 1
+
+
         if len(asks) > 1:
             quantities = [str(ask[1]) for ask in asks] if update.get('sequenceId') == 0 else [ask['size'] for ask in asks]
             prices = [str(ask[0]) for ask in asks] if update.get('sequenceId') == 0 else [ask['price'] for ask in asks]
@@ -134,8 +150,19 @@ class OrderbookFeeder(object):
                     self.writer.set_ask_quantity_at(str(ask[1]), str(ask[0]))
                 else:
                     #print("Inserting {} in {} ask from {}: {}@{}".format(self.circle_counter, self.shm, update['exchange'], ask['size'], ask['price']))
+                    #print("First ask price is", self.writer.first_price(False))
                     self.writer.set_ask_quantity_at(ask['size'], ask['price'])
                 self.circle_counter += 1
+
+        if len(self.writer.snapshot_asks(1)) > 0:
+            askprice, askqty = self.writer.snapshot_asks(1)[0]
+            if (askprice != old_askprice) or (askqty != old_askqty):
+                print("Set new top ask at {} for {} from {}: {}@{} received at {}".format(datetime.datetime.now().isoformat(), self.ccxt_instrument.name, update.get('exchange'), askqty, askprice, datetime.datetime.fromtimestamp(update.get("server_received")/1000)))
+            
+        if len(self.writer.snapshot_bids(1)) > 0:
+            bidprice, bidqty = self.writer.snapshot_bids(1)[0]
+            if (bidprice != old_bidprice) or (bidqty != old_bidqty):
+                print("Set new top bid at {} for {} from {}: {}@{} received at {}".format(datetime.datetime.now().isoformat(),  self.ccxt_instrument.name, update.get('exchange'), bidqty, bidprice, datetime.datetime.fromtimestamp(update.get("server_received")/1000)))               
 
         if not self.writer.is_sound() and (time.time() - self.start_time) > 4 :
             message = '[FEEDER] Incoherent ORDERBOOK: crossing detected, resetting' + self.shm
