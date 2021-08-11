@@ -109,3 +109,7 @@ class RtOrderbookWriter(orderbook_wrapper.OrderbookWriter, CommonOrderBookClass)
 			frac_quantities.append((frac_quantity.numerator, frac_quantity.denominator))
 			frac_prices.append((frac_price.numerator, frac_price.denominator))
 		return super().set_quantities_at(True, frac_quantities,  frac_prices)
+
+	def first_price(self, side):
+		price = super().first_price(side)
+		return dec(*price)
