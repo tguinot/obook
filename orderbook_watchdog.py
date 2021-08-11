@@ -4,21 +4,27 @@ import subprocess
 import os
 from slack_lib import send_slack_alert
 import zmq
+import socket
 import signal
 import sys
+import json
 #from db_inquirer import DatabaseQuerier
 
 
+home_dir = os.environ.get('HOME')
+hostname = socket.gethostname()
 
-orderbook_profiles = [{'exchange': 'BinanceUS', 'instrument': 'BTCUSD'}, {'exchange': 'FTX', 'instrument': 'BTC/USD'}, {'exchange': 'FTX', 'instrument': 'BTC-PERP'}, {'exchange': 'FTX', 'instrument': 'ETH-PERP'},
-                      {'exchange': 'FTX', 'instrument': 'BNB-PERP'}, {'exchange': 'FTX', 'instrument': 'XRP-PERP'}, {'exchange': 'FTX', 'instrument': 'LTC-PERP'}]
+print("Running on", hostname, "with home dir", home_dir)
+
+with open(f"{home_dir}/code/qlabs-mm/allocations.json", "r") as f:
+    orderbook_profiles = json.load(f).get(hostname)
 
 #db_service_interface = DatabaseQuerier('127.0.0.1', 5678)
 for prof in orderbook_profiles:
     try:
-        orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['instrument'])  ]
+        orderbook_readers = [ResilientOrderbookReader(prof['exchange'], prof['id'])  ]
     except Exception as e:
-        message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Failed to intialize orderbook {prof['exchange']}, {prof['instrument']} ({e}) restarting data services"
+        message = f"[WATCHDOG {os.getenv('ENV_CONTEXT')}] Failed to intialize orderbook {prof['exchange']}, {prof['id']} ({e}) restarting data services"
         print(message)
         send_slack_alert("#mm-alerts", message)
         #subprocess.run(["/usr/bin/bash", f"../qlabs-mm/restart_{os.getenv('ENV_CONTEXT')}_services.sh"])
